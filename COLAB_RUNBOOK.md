@@ -64,7 +64,7 @@ Sau đó chạy:
 !pip install -q huggingface_hub bitsandbytes
 ```
 
-Repo không ép phiên bản Torch. Colab sẽ sử dụng Torch CUDA có sẵn trong runtime. Qwen3-4B được load ở chế độ 4-bit NF4 để phù hợp GPU T4 16 GB.
+Repo không ép phiên bản Torch. Colab sẽ sử dụng Torch CUDA có sẵn trong runtime. Trước mắt dùng Qwen3-1.7B nguyên gốc; code vẫn hỗ trợ load 4-bit nếu cần.
 
 Kiểm tra:
 
@@ -85,8 +85,8 @@ print("Transformers:", transformers.__version__)
 from huggingface_hub import snapshot_download
 
 snapshot_download(
-    repo_id="Qwen/Qwen3-4B",
-    local_dir="/content/models/qwen3-4b",
+    repo_id="Qwen/Qwen3-1.7B",
+    local_dir="/content/models/qwen3-1.7b",
 )
 
 snapshot_download(
@@ -146,7 +146,7 @@ Train có trường `audio_text`, nên bước này kiểm tra Qwen, prompt, Too
 !python /content/LifeMate/baseline.py \
   --root "$DATA_ROOT" \
   --split train \
-  --model /content/models/qwen3-4b \
+  --model /content/models/qwen3-1.7b \
   --asr-model /content/models/chunkformer-ctc-large-vie \
   --output /content/result/train_smoke.jsonl \
   --limit 1
@@ -170,7 +170,7 @@ Mỗi dòng phải có đúng các trường chính:
 !python /content/LifeMate/baseline.py \
   --root "$DATA_ROOT" \
   --split public_test \
-  --model /content/models/qwen3-4b \
+  --model /content/models/qwen3-1.7b \
   --asr-model /content/models/chunkformer-ctc-large-vie \
   --output /content/result/public_smoke.jsonl \
   --limit 1
@@ -182,7 +182,7 @@ Nếu smoke test thành công, chạy toàn bộ public test:
 !time python /content/LifeMate/baseline.py \
   --root "$DATA_ROOT" \
   --split public_test \
-  --model /content/models/qwen3-4b \
+  --model /content/models/qwen3-1.7b \
   --asr-model /content/models/chunkformer-ctc-large-vie \
   --output /content/result/submission.jsonl
 ```
