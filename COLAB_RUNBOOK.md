@@ -64,7 +64,7 @@ Sau đó chạy:
 !pip install -q huggingface_hub bitsandbytes
 ```
 
-Repo không ép phiên bản Torch. Colab sẽ sử dụng Torch CUDA có sẵn trong runtime.
+Repo không ép phiên bản Torch. Colab sẽ sử dụng Torch CUDA có sẵn trong runtime. Qwen3-4B được load ở chế độ 4-bit NF4 để phù hợp GPU T4 16 GB.
 
 Kiểm tra:
 

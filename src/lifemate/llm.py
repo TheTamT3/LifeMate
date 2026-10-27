@@ -23,7 +23,12 @@ class LocalQwenAgent:
 
         seed_everything(self.seed)
         self._tokenizer = AutoTokenizer.from_pretrained(self.model_path, local_files_only=True)
-        quantization_config = BitsAndBytesConfig(load_in_8bit=True)
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_use_double_quant=True,
+        )
         self._model = AutoModelForCausalLM.from_pretrained(
             self.model_path,
             local_files_only=True,
