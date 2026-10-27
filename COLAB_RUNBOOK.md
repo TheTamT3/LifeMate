@@ -61,7 +61,7 @@ Sau đó chạy:
 ```python
 %cd /content/LifeMate
 !pip install -q -r requirements.txt
-!pip install -q huggingface_hub
+!pip install -q huggingface_hub bitsandbytes
 ```
 
 Repo không ép phiên bản Torch. Colab sẽ sử dụng Torch CUDA có sẵn trong runtime.
@@ -114,6 +114,12 @@ Dataset không nằm trong Git repo. Upload file zip dataset lên Google Drive r
 !find /content/data -maxdepth 3 -type f | head -30
 ```
 
+Kiểm tra vị trí thực tế của file dữ liệu:
+
+```python
+!find /content/data -name train.jsonl
+```
+
 `DATA_ROOT` phải là thư mục chứa trực tiếp hai thư mục:
 
 ```text
@@ -121,11 +127,15 @@ train/
 public_test/
 ```
 
-Ví dụ:
+Với file zip ở trên, đường dẫn thường là:
 
 ```python
-DATA_ROOT="/content/data/train+public_test/train+public_test"
+%env DATA_ROOT=/content/data/train+public_test/train+public_test
+!test -f "$DATA_ROOT/train/train.jsonl" && echo "DATA_ROOT OK"
+!test -f "$DATA_ROOT/train/train_tools_catalog.json" && echo "CATALOG OK"
 ```
+
+Nếu lệnh `find` trả về đường dẫn khác, hãy lấy phần thư mục ngay trước `/train/train.jsonl` làm `DATA_ROOT`. Không đặt `DATA_ROOT` trỏ trực tiếp vào thư mục `train/`, vì chương trình sẽ tự nối thêm `train/` theo `--split train`.
 
 ## 6. Chạy train smoke test
 

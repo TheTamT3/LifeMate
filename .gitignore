@@ -13,6 +13,7 @@ result/
 *.bin
 *.pt
 *.pth
+*.zip
 
 # Competition data/environment (download separately; never commit state files)
 train+public_test/

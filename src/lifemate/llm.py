@@ -18,12 +18,18 @@ class LocalQwenAgent:
     def _load(self) -> None:
         if self._model is not None:
             return
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+        import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
         seed_everything(self.seed)
         self._tokenizer = AutoTokenizer.from_pretrained(self.model_path, local_files_only=True)
+        quantization_config = BitsAndBytesConfig(load_in_8bit=True)
         self._model = AutoModelForCausalLM.from_pretrained(
-            self.model_path, local_files_only=True, torch_dtype="auto", device_map="auto"
+            self.model_path,
+            local_files_only=True,
+            torch_dtype=torch.float16,
+            quantization_config=quantization_config,
+            device_map="auto",
         )
 
     def generate(self, prompt: str) -> str:
