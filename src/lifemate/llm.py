@@ -8,10 +8,17 @@ from .config import seed_everything
 class LocalQwenAgent:
     """Local deterministic Transformers adapter with a structured-output boundary."""
 
-    def __init__(self, model_path: Path, max_new_tokens: int = 128, seed: int = 0) -> None:
+    def __init__(
+        self,
+        model_path: Path,
+        max_new_tokens: int = 128,
+        seed: int = 0,
+        quantize: bool = False,
+    ) -> None:
         self.model_path = Path(model_path)
         self.max_new_tokens = max_new_tokens
         self.seed = seed
+        self.quantize = quantize
         self._tokenizer = None
         self._model = None
 
@@ -19,16 +26,20 @@ class LocalQwenAgent:
         if self._model is not None:
             return
         import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+        from transformers import AutoModelForCausalLM, AutoTokenizer
 
         seed_everything(self.seed)
         self._tokenizer = AutoTokenizer.from_pretrained(self.model_path, local_files_only=True)
-        quantization_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.float16,
-            bnb_4bit_use_double_quant=True,
-        )
+        quantization_config = None
+        if self.quantize:
+            from transformers import BitsAndBytesConfig
+
+            quantization_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.float16,
+                bnb_4bit_use_double_quant=True,
+            )
         self._model = AutoModelForCausalLM.from_pretrained(
             self.model_path,
             local_files_only=True,

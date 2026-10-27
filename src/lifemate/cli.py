@@ -20,7 +20,7 @@ def validate_result(result: dict[str, Any]) -> None:
         raise ValueError("invalid result field types")
 
 
-def run_dataset(root: Path, split: str, model_path: Path, asr_model_path: Path, output: Path, limit: int | None = None, seed: int = 0) -> None:
+def run_dataset(root: Path, split: str, model_path: Path, asr_model_path: Path, output: Path, limit: int | None = None, seed: int = 0, quantize: bool = False) -> None:
     if split not in {"train", "public_test", "private_test"}:
         raise ValueError(f"unsupported split: {split}")
     config = RuntimeConfig(model_path, asr_model_path)
@@ -30,7 +30,7 @@ def run_dataset(root: Path, split: str, model_path: Path, asr_model_path: Path, 
     if limit is not None:
         samples = samples[:limit]
     catalog = load_catalog(catalog_path)
-    llm = LocalQwenAgent(config.model_path, config.max_new_tokens, seed)
+    llm = LocalQwenAgent(config.model_path, config.max_new_tokens, seed, quantize=quantize)
     asr = ChunkFormerASR(config.asr_model_path)
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("w", encoding="utf-8") as handle:
@@ -57,5 +57,6 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--limit", type=int)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--quantize", action="store_true", help="Load the LLM with 4-bit NF4 quantization")
     args = parser.parse_args(argv)
-    run_dataset(args.root, args.split, args.model, args.asr_model, args.output, args.limit, args.seed)
+    run_dataset(args.root, args.split, args.model, args.asr_model, args.output, args.limit, args.seed, args.quantize)

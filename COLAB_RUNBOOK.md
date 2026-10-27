@@ -95,6 +95,9 @@ snapshot_download(
 )
 ```
 
+Mặc định LLM chạy FP16, không quantize. Nếu GPU thiếu VRAM, thêm flag
+`--quantize` vào lệnh baseline để bật 4-bit NF4.
+
 Có thể lưu model vào Google Drive để không tải lại sau mỗi phiên:
 
 ```python
