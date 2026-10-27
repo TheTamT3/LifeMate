@@ -1,0 +1,22 @@
+# Local Python/build artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local checkpoints and generated outputs
+models/
+checkpoints/
+result/
+*.safetensors
+*.bin
+*.pt
+*.pth
+
+# Competition data/environment (download separately; never commit state files)
+train+public_test/
+*_environment/
+
+# Superpowers execution scratch space
+.superpowers/

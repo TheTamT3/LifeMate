@@ -1,0 +1,6 @@
+torch==2.8.0
+transformers==4.57.1
+pydantic==2.12.3
+pydantic-ai==1.16.0
+chunkformer==0.1.0
+pytest==9.1.1
