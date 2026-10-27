@@ -10,7 +10,9 @@ class RuntimeConfig:
     model_path: Path
     asr_model_path: Path
     max_steps: int = 8
-    max_new_tokens: int = 512
+    # Tool-call JSON is short; keeping this bounded avoids large KV caches on
+    # 16 GB Colab GPUs while leaving enough room for multi-call responses.
+    max_new_tokens: int = 128
     context_length: int = 16_384
 
     def __post_init__(self) -> None:

@@ -8,7 +8,7 @@ from .config import seed_everything
 class LocalQwenAgent:
     """Local deterministic Transformers adapter with a structured-output boundary."""
 
-    def __init__(self, model_path: Path, max_new_tokens: int = 512, seed: int = 0) -> None:
+    def __init__(self, model_path: Path, max_new_tokens: int = 128, seed: int = 0) -> None:
         self.model_path = Path(model_path)
         self.max_new_tokens = max_new_tokens
         self.seed = seed
@@ -44,11 +44,21 @@ class LocalQwenAgent:
             {"role": "user", "content": prompt},
         ]
         text = self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-        inputs = self._tokenizer(text, return_tensors="pt").to(self._model.device)
+        # Keep the prompt bounded: catalogues and accumulated observations can
+        # otherwise consume most of a 16 GB GPU before generation starts.
+        inputs = self._tokenizer(
+            text,
+            return_tensors="pt",
+            truncation=True,
+            max_length=4096,
+        ).to(self._model.device)
         import torch
 
         with torch.inference_mode():
             output = self._model.generate(
-                **inputs, max_new_tokens=self.max_new_tokens, do_sample=False
+                **inputs,
+                max_new_tokens=self.max_new_tokens,
+                do_sample=False,
+                use_cache=False,
             )
         return self._tokenizer.decode(output[0][inputs["input_ids"].shape[-1] :], skip_special_tokens=True)

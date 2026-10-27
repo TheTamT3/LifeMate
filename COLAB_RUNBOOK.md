@@ -232,3 +232,7 @@ Kiểm tra đường dẫn model có các file như `config.yaml`, `pytorch_mode
 - Agent chỉ truy cập app state qua `ToolEnv`.
 - Không gọi OpenAI, ElevenLabs, Hugging Face API hoặc dịch vụ ngoài trong inference chính thức.
 - Kết quả nộp phải là UTF-8 JSONL với `id`, `tool_calls`, `state_hash`.
+Memory note: the baseline now generates at most 128 new tokens, truncates each
+prompt to 4096 tokens, and disables the generation KV cache to reduce CUDA OOM
+risk on a 16 GB Colab GPU. Restart the runtime and smoke-test with `--limit 1`
+if the GPU still reports out-of-memory.
