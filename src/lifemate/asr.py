@@ -18,23 +18,21 @@ class ChunkFormerASR:
 
     def _load(self) -> Any:
         if self._pipeline is None:
-            from transformers import pipeline
+            from chunkformer import ChunkFormerModel
 
-            target = -1
-            if self.device == "cuda":
-                target = 0
-            self._pipeline = pipeline(
-                "automatic-speech-recognition",
-                model=str(self.model_path),
-                device=target,
-                local_files_only=True,
-            )
+            self._pipeline = ChunkFormerModel.from_pretrained(str(self.model_path))
         return self._pipeline
 
     def transcribe(self, audio_path: Path) -> str:
         if not audio_path.exists():
             raise FileNotFoundError(audio_path)
-        result = self._load()(str(audio_path), chunk_length_s=30)
+        result = self._load().endless_decode(
+            audio_path=str(audio_path),
+            chunk_size=64,
+            left_context_size=128,
+            right_context_size=128,
+            total_batch_duration=14400,
+        )
         text = result.get("text", "") if isinstance(result, dict) else str(result)
         return text.strip()
 
