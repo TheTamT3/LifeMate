@@ -1,0 +1,224 @@
+# Chạy LifeMate trên Google Colab
+
+Tài liệu này hướng dẫn chạy baseline trên Colab GPU. Model được tải trong giai đoạn phát triển; khi chấm chính thức, inference phải chạy offline theo rule của cuộc thi.
+
+## 1. Bật GPU
+
+Trong Colab chọn:
+
+`Runtime → Change runtime type → T4 GPU`
+
+Kiểm tra:
+
+```python
+!nvidia-smi
+```
+
+## 2. Clone repository
+
+### Repository public
+
+```python
+%cd /content
+!rm -rf LifeMate
+!git clone https://github.com/TheTamT3/LifeMate.git
+%cd /content/LifeMate
+```
+
+### Repository private
+
+Tạo GitHub Personal Access Token có quyền đọc repository. Trong Colab mở biểu tượng chìa khóa, tạo secret tên `GITHUB_TOKEN`, rồi chạy:
+
+```python
+import subprocess
+from google.colab import userdata
+
+token = userdata.get("GITHUB_TOKEN")
+assert token, "Chưa cấu hình GITHUB_TOKEN trong Colab Secrets"
+
+url = f"https://x-access-token:{token}@github.com/TheTamT3/LifeMate.git"
+subprocess.run(["git", "clone", url, "/content/LifeMate"], check=True)
+
+del token
+del url
+```
+
+Kiểm tra đúng phiên bản mới nhất:
+
+```python
+%cd /content/LifeMate
+!git log -1 --oneline
+```
+
+## 3. Cài dependencies
+
+Khởi động lại runtime trước khi cài nếu phiên Colab đã cài nhiều package:
+
+`Runtime → Restart session`
+
+Sau đó chạy:
+
+```python
+%cd /content/LifeMate
+!pip install -q -r requirements.txt
+!pip install -q huggingface_hub
+```
+
+Repo không ép phiên bản Torch. Colab sẽ sử dụng Torch CUDA có sẵn trong runtime.
+
+Kiểm tra:
+
+```python
+import torch
+import transformers
+
+print("Torch:", torch.__version__)
+print("CUDA:", torch.cuda.is_available())
+print("Transformers:", transformers.__version__)
+```
+
+`pip` có thể hiển thị warning về `diffusers`, `gradio`, `google-adk` hoặc `opentelemetry`. Đây là package có sẵn của Colab, không được LifeMate sử dụng. Nếu CUDA trả về `True`, có thể tiếp tục.
+
+## 4. Tải model từ Hugging Face
+
+```python
+from huggingface_hub import snapshot_download
+
+snapshot_download(
+    repo_id="Qwen/Qwen3-4B",
+    local_dir="/content/models/qwen3-4b",
+)
+
+snapshot_download(
+    repo_id="khanhld/chunkformer-ctc-large-vie",
+    local_dir="/content/models/chunkformer-ctc-large-vie",
+)
+```
+
+Có thể lưu model vào Google Drive để không tải lại sau mỗi phiên:
+
+```python
+from google.colab import drive
+drive.mount("/content/drive")
+```
+
+Sau đó thay `/content/models/...` bằng đường dẫn trong `/content/drive/MyDrive/...`.
+
+## 5. Chuẩn bị dataset
+
+Dataset không nằm trong Git repo. Upload file zip dataset lên Google Drive rồi giải nén:
+
+```python
+!mkdir -p /content/data
+!unzip -q "/content/drive/MyDrive/train+public_test.zip" -d /content/data
+!find /content/data -maxdepth 3 -type f | head -30
+```
+
+`DATA_ROOT` phải là thư mục chứa trực tiếp hai thư mục:
+
+```text
+train/
+public_test/
+```
+
+Ví dụ:
+
+```python
+DATA_ROOT="/content/data/train+public_test/train+public_test"
+```
+
+## 6. Chạy train smoke test
+
+Train có trường `audio_text`, nên bước này kiểm tra Qwen, prompt, ToolEnv và output JSONL mà chưa cần ASR thật:
+
+```python
+%env PYTHONPATH=/content/LifeMate/src
+!python /content/LifeMate/baseline.py \
+  --root "$DATA_ROOT" \
+  --split train \
+  --model /content/models/qwen3-4b \
+  --asr-model /content/models/chunkformer-ctc-large-vie \
+  --output /content/result/train_smoke.jsonl \
+  --limit 1
+```
+
+Kiểm tra output:
+
+```python
+!cat /content/result/train_smoke.jsonl
+```
+
+Mỗi dòng phải có đúng các trường chính:
+
+```json
+{"id":"...", "tool_calls":[], "state_hash":"..."}
+```
+
+## 7. Chạy public smoke test có ASR
+
+```python
+!python /content/LifeMate/baseline.py \
+  --root "$DATA_ROOT" \
+  --split public_test \
+  --model /content/models/qwen3-4b \
+  --asr-model /content/models/chunkformer-ctc-large-vie \
+  --output /content/result/public_smoke.jsonl \
+  --limit 1
+```
+
+Nếu smoke test thành công, chạy toàn bộ public test:
+
+```python
+!time python /content/LifeMate/baseline.py \
+  --root "$DATA_ROOT" \
+  --split public_test \
+  --model /content/models/qwen3-4b \
+  --asr-model /content/models/chunkformer-ctc-large-vie \
+  --output /content/result/submission.jsonl
+```
+
+File kết quả:
+
+```text
+/content/result/submission.jsonl
+```
+
+## 8. Xử lý lỗi thường gặp
+
+### Git yêu cầu username/password
+
+Repository đang private. Dùng `GITHUB_TOKEN` theo mục 2, không dùng password GitHub thông thường.
+
+### `No module named lifemate`
+
+```python
+%env PYTHONPATH=/content/LifeMate/src
+```
+
+### `No module named accelerate`
+
+```python
+!pip install -q accelerate==1.10.1
+```
+
+### Không load được ChunkFormer
+
+Kiểm tra đường dẫn model có các file như `config.yaml`, `pytorch_model.bin`, `vocab.txt`:
+
+```python
+!ls /content/models/chunkformer-ctc-large-vie
+```
+
+### Hết VRAM
+
+- Chạy train và public ở các cell riêng.
+- Không load nhiều model copy cùng lúc.
+- Restart runtime trước khi chạy lại.
+- Dùng GPU Colab lớn hơn nếu cần.
+
+## 9. Quy tắc quan trọng
+
+- Không commit model weights, dataset hoặc `state.json` lên GitHub.
+- Agent chỉ truy cập app state qua `ToolEnv`.
+- Không gọi OpenAI, ElevenLabs, Hugging Face API hoặc dịch vụ ngoài trong inference chính thức.
+- Kết quả nộp phải là UTF-8 JSONL với `id`, `tool_calls`, `state_hash`.
