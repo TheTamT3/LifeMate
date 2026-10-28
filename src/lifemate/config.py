@@ -14,6 +14,8 @@ class RuntimeConfig:
     # 16 GB Colab GPUs while leaving enough room for multi-call responses.
     max_new_tokens: int = 128
     context_length: int = 16_384
+    llm_base_url: str = "http://127.0.0.1:8000/v1"
+    llm_model_name: str = "qwen3-4b"
 
     def __post_init__(self) -> None:
         if self.max_steps < 1 or self.max_new_tokens < 1:
