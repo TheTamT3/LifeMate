@@ -70,6 +70,6 @@ class LocalQwenAgent:
                 **inputs,
                 max_new_tokens=self.max_new_tokens,
                 do_sample=False,
-                use_cache=False,
+                use_cache=True,
             )
         return self._tokenizer.decode(output[0][inputs["input_ids"].shape[-1] :], skip_special_tokens=True)
