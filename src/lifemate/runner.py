@@ -39,12 +39,13 @@ def run_sample(
     llm_model: Any,
     asr: ASR | None = None,
     max_steps: int = 8,
+    seed: int = 0,
 ) -> dict[str, Any]:
     env = _tool_env(split, sample["id"], root)
     tools = allowed_tools(sample, catalog)
     text = transcript(_sample_with_audio_root(sample, root, split), asr)
     tools_by_name = {tool["name"]: tool for tool in tools}
-    deps = AgentDependencies(env=env, tools_by_name=tools_by_name, max_steps=max_steps)
+    deps = AgentDependencies(env=env, tools_by_name=tools_by_name, max_steps=max_steps, seed=seed)
     agent = build_agent(llm_model, deps)
     prompt = _build_agent_prompt(sample, text, tools)
     run_agent(agent, deps, prompt)

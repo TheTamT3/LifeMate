@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
-from typing import Any, Literal, Union, get_args
+from datetime import date, datetime, time
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr, create_model
 
@@ -15,6 +16,7 @@ class AgentDependencies:
     env: Any
     tools_by_name: dict[str, dict[str, Any]]
     max_steps: int
+    seed: int = 0
     calls: list[dict[str, Any]] = field(default_factory=list)
     round_calls: list[list[str]] = field(default_factory=list)
 
@@ -44,6 +46,14 @@ def _annotation(spec: dict[str, Any]) -> Any:
     if kind == "array":
         item = spec.get("items", {"type": "string"})
         return list[_annotation(item)]
+    if kind == "object":
+        properties = spec.get("properties", {})
+        required = set(spec.get("required", []))
+        fields: dict[str, tuple[Any, Any]] = {}
+        for name, child in properties.items():
+            default = ... if name in required else None
+            fields[name] = (_annotation(child), Field(default=default, description=child.get("description")))
+        return create_model("CatalogNestedObject", __config__=ConfigDict(extra="forbid"), **fields)
     raise ValueError(f"unsupported catalog parameter type: {kind!r}")
 
 
@@ -76,14 +86,72 @@ def validate_catalog_arguments(tool: dict[str, Any], arguments: dict[str, Any]) 
     groups = (tool.get("parameters") or {}).get("x-one-of", [])
     if groups and not any(all(name in arguments and arguments[name] is not None for name in option) for option in groups):
         raise ValueError(f"arguments do not satisfy x-one-of for {tool.get('name')}")
-    return value.model_dump(exclude_none=True)
+    parsed = value.model_dump(exclude_none=True)
+    _validate_formats(parsed, (tool.get("parameters") or {}).get("properties", {}))
+    return parsed
+
+
+def _validate_formats(value: Any, spec: dict[str, Any]) -> None:
+    """Apply the small, catalog-supported JSON Schema format subset."""
+    if not isinstance(spec, dict):
+        return
+    if isinstance(value, dict):
+        properties = spec.get("properties", spec)
+        for name, child in properties.items():
+            if name in value:
+                _validate_formats(value[name], child)
+        return
+    if isinstance(value, list):
+        item_spec = spec.get("items", {})
+        for item in value:
+            _validate_formats(item, item_spec)
+        return
+    fmt = spec.get("format")
+    if not fmt or value is None:
+        return
+    try:
+        if fmt == "date":
+            date.fromisoformat(value)
+        elif fmt == "date-time":
+            datetime.fromisoformat(value.replace("Z", "+00:00"))
+        elif fmt == "time":
+            time.fromisoformat(value.replace("Z", "+00:00"))
+        elif fmt == "email":
+            if not re.fullmatch(r"[^@\\s]+@[^@\\s]+\\.[^@\\s]+", value):
+                raise ValueError
+        elif fmt == "uuid":
+            import uuid
+
+            uuid.UUID(value)
+        else:
+            raise ValueError(f"unsupported catalog format: {fmt!r}")
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"invalid {fmt} value: {value!r}") from exc
 
 
 def _json_safe(value: Any) -> Any:
     try:
-        return json.loads(json.dumps(value, ensure_ascii=False))
+        encoded = json.dumps(value, ensure_ascii=False)
+        if len(encoded) > 16_384:
+            encoded = encoded[:16_384]
+        return json.loads(encoded)
     except (TypeError, ValueError):
         return str(value)
+
+
+def _catalog_json_schema(model: type[BaseModel], tool: dict[str, Any]) -> dict[str, Any]:
+    schema = model.model_json_schema()
+    parameters = tool.get("parameters") or {}
+    for extension in ("x-one-of", "x-ref", "x-match"):
+        if extension in parameters:
+            schema[extension] = parameters[extension]
+    for name, spec in parameters.get("properties", {}).items():
+        if name not in schema.get("properties", {}):
+            continue
+        for extension in ("x-ref", "x-match", "format"):
+            if extension in spec:
+                schema["properties"][name][extension] = spec[extension]
+    return schema
 
 
 def build_tool_definitions(deps: AgentDependencies) -> list[Any]:
@@ -97,16 +165,13 @@ def build_tool_definitions(deps: AgentDependencies) -> list[Any]:
         argument_model = catalog_argument_model(tool)
         internal_name = _safe_name(official_name, index)
 
-        def validate(_ctx: Any, arguments: dict[str, Any], *, _tool=tool) -> None:
-            validate_catalog_arguments(_tool, arguments)
-
         def invoke(ctx: Any, *, _official=official_name, _tool=tool, **arguments: Any) -> Any:
             parsed = validate_catalog_arguments(_tool, arguments)
             result = ctx.deps.env.call(_official, parsed) if ctx is not None and hasattr(ctx, "deps") else deps.env.call(_official, parsed)
             deps.calls.append({"name": _official, "arguments": parsed, "kind": _tool.get("kind", "write")})
             return _json_safe(result)
 
-        schema = argument_model.model_json_schema()
+        schema = _catalog_json_schema(argument_model, tool)
         definitions.append(
             Tool.from_schema(
                 invoke,
@@ -114,7 +179,6 @@ def build_tool_definitions(deps: AgentDependencies) -> list[Any]:
                 description=str(tool.get("description", "")),
                 json_schema=schema,
                 takes_ctx=True,
-                args_validator=validate,
                 sequential=True,
             )
         )
@@ -153,13 +217,29 @@ def run_agent(agent: Any, deps: AgentDependencies, prompt: str) -> Any:
         usage_limits = UsageLimits(request_limit=deps.max_steps)
     except ImportError:  # unit tests can run without optional PydanticAI deps
         usage_limits = _FallbackUsageLimits(request_limit=deps.max_steps)
+    settings = {"temperature": 0, "top_p": 1, "seed": deps.seed}
     try:
-        return agent.run_sync(
-            prompt,
-            deps=deps,
-            usage_limits=usage_limits,
-            model_settings={"temperature": 0, "top_p": 1},
-        )
+        if hasattr(agent, "iter"):
+            import asyncio
+
+            async def drive() -> Any:
+                async with agent.iter(
+                    prompt,
+                    deps=deps,
+                    usage_limits=usage_limits,
+                    model_settings=settings,
+                ) as agent_run:
+                    node = agent_run.next_node
+                    while node.__class__.__name__ != "End":
+                        before = len(deps.calls)
+                        node = await agent_run.next(node)
+                        new_calls = deps.calls[before:]
+                        if any(call["kind"] != "read" for call in new_calls):
+                            break
+                    return getattr(agent_run, "result", None)
+
+            return asyncio.run(drive())
+        return agent.run_sync(prompt, deps=deps, usage_limits=usage_limits, model_settings=settings)
     except Exception as exc:  # provider failures must not create synthetic calls
         deps.error = str(exc)
         return None

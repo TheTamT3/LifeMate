@@ -69,6 +69,7 @@ def run_dataset(
                 llm_model=llm,
                 asr=asr,
                 max_steps=config.max_steps,
+                seed=seed,
             )
             validate_result(result)
             handle.write(json.dumps(result, ensure_ascii=False) + "\n")
