@@ -8,6 +8,7 @@ from lifemate.pydantic_agent import (
     AgentDependencies,
     build_tool_definitions,
     catalog_argument_model,
+    run_agent,
     validate_catalog_arguments,
 )
 
@@ -78,3 +79,20 @@ def test_tool_factory_keeps_description_and_calls_official_name(monkeypatch):
     definitions[0].args_validator(None, {"title": "x"})
     definitions[0].function(None, title="x")
     assert calls == [(tool["name"], {"title": "x"})]
+
+
+def test_run_agent_passes_deterministic_settings_and_round_limit():
+    class FakeAgent:
+        def __init__(self):
+            self.kwargs = None
+
+        def run_sync(self, prompt, **kwargs):
+            self.kwargs = kwargs
+            return None
+
+    deps = AgentDependencies(object(), {}, max_steps=8)
+    agent = FakeAgent()
+    run_agent(agent, deps, "request")
+    assert agent.kwargs["deps"] is deps
+    assert agent.kwargs["usage_limits"].request_limit == 8
+    assert agent.kwargs["model_settings"] == {"temperature": 0, "top_p": 1}

@@ -19,6 +19,11 @@ class AgentDependencies:
     round_calls: list[list[str]] = field(default_factory=list)
 
 
+@dataclass(frozen=True)
+class _FallbackUsageLimits:
+    request_limit: int
+
+
 def _safe_name(name: str, index: int) -> str:
     value = re.sub(r"[^a-zA-Z0-9_]+", "_", name).strip("_") or "tool"
     return f"lifemate_tool_{index}_{value}"
@@ -132,3 +137,29 @@ def build_agent(model: Any, deps: AgentDependencies) -> Any:
             "Use a read tool first when a later action needs an unknown ID."
         ),
     )
+
+
+def run_agent(agent: Any, deps: AgentDependencies, prompt: str) -> Any:
+    """Run one PydanticAI conversation with deterministic settings.
+
+    PydanticAI owns the model/tool message loop. The registered tools are
+    sequential barriers, and the prompt instructs the model to finish after a
+    write/meta operation; the request limit is the final safety bound.
+    """
+
+    try:
+        from pydantic_ai import UsageLimits
+
+        usage_limits = UsageLimits(request_limit=deps.max_steps)
+    except ImportError:  # unit tests can run without optional PydanticAI deps
+        usage_limits = _FallbackUsageLimits(request_limit=deps.max_steps)
+    try:
+        return agent.run_sync(
+            prompt,
+            deps=deps,
+            usage_limits=usage_limits,
+            model_settings={"temperature": 0, "top_p": 1},
+        )
+    except Exception as exc:  # provider failures must not create synthetic calls
+        deps.error = str(exc)
+        return None
