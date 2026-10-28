@@ -1,17 +1,13 @@
 from __future__ import annotations
 
 import sys
+import json
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any
 
-from .agent_schema import ToolCall, parse_calls
 from .asr import ASR, transcript
 from .data import allowed_tools
-from .prompting import build_prompt
-
-
-class LLM(Protocol):
-    def generate(self, prompt: str) -> str: ...
+from .pydantic_agent import AgentDependencies, build_agent, run_agent
 
 
 def _tool_env(split: str, sample_id: str, root: Path) -> Any:
@@ -40,34 +36,48 @@ def run_sample(
     split: str,
     root: Path,
     catalog: dict[str, dict[str, Any]],
-    llm: LLM,
+    llm_model: Any,
     asr: ASR | None = None,
     max_steps: int = 8,
 ) -> dict[str, Any]:
     env = _tool_env(split, sample["id"], root)
     tools = allowed_tools(sample, catalog)
     text = transcript(_sample_with_audio_root(sample, root, split), asr)
-    allowed_names = {tool["name"] for tool in tools}
-    observations: list[dict[str, Any]] = []
-
-    for _ in range(max_steps):
-        calls: list[ToolCall] = parse_calls(
-            llm.generate(build_prompt(sample, text, tools, observations)), allowed_names
-        )
-        if not calls:
-            break
-        progressed = False
-        for call in calls:
-            result = env.call(call.name, call.arguments)
-            observations.append({"call": call.model_dump(), "result": result})
-            progressed = True
-        if not progressed:
-            break
-        if not all(catalog.get(call.name, {}).get("kind") == "read" for call in calls):
-            break
+    tools_by_name = {tool["name"]: tool for tool in tools}
+    deps = AgentDependencies(env=env, tools_by_name=tools_by_name, max_steps=max_steps)
+    agent = build_agent(llm_model, deps)
+    prompt = _build_agent_prompt(sample, text, tools)
+    run_agent(agent, deps, prompt)
 
     return {
         "id": str(sample["id"]),
         "tool_calls": env.get_tool_calls(),
         "state_hash": env.get_state_hash(),
     }
+
+
+def _build_agent_prompt(sample: dict[str, Any], text: str, tools: list[dict[str, Any]]) -> str:
+    """Build the user message without exposing labels or environment state."""
+
+    context = dict(sample.get("context", {}))
+    context.pop("installed_apps", None)
+    payload = {
+        "request": text,
+        "context": context,
+        "history": sample.get("history", []),
+        "available_tools": [
+            {
+                "name": tool["name"],
+                "kind": tool.get("kind"),
+                "description": tool.get("description", ""),
+                "parameters": tool.get("parameters", {}),
+            }
+            for tool in tools
+        ],
+        "rules": [
+            "Use only the registered tools.",
+            "Do not invent identifiers; use a read tool first when needed.",
+            "Return no tool call when no action is required.",
+        ],
+    }
+    return json.dumps(payload, ensure_ascii=False)

@@ -18,9 +18,9 @@ class Env:
         return "stable-hash"
 
 
-class LLM:
-    def generate(self, prompt):
-        return '[{"name":"weather.get_current","arguments":{}}]'
+class Agent:
+    def run_sync(self, prompt, *, deps, usage_limits, model_settings):
+        deps.env.call("weather.get_current", {})
 
 
 def test_runner_output_is_deterministic_and_hash_is_environment_value(monkeypatch, tmp_path):
@@ -30,10 +30,11 @@ def test_runner_output_is_deterministic_and_hash_is_environment_value(monkeypatc
     module = types.ModuleType("zaic_tools")
     module.ToolEnv = Env
     monkeypatch.setitem(sys.modules, "zaic_tools", module)
+    monkeypatch.setattr("lifemate.runner.build_agent", lambda model, deps: Agent())
     sample = {"id": "s", "audio_text": "thời tiết", "context": {"installed_apps": {"w": {"tools": ["weather.get_current"]}}}}
     catalog = {"weather.get_current": {"name": "weather.get_current", "kind": "write"}}
-    first = run_sample(sample, "train", tmp_path, catalog, LLM())
-    second = run_sample(sample, "train", tmp_path, catalog, LLM())
+    first = run_sample(sample, "train", tmp_path, catalog, object())
+    second = run_sample(sample, "train", tmp_path, catalog, object())
     assert first == second
     assert first["state_hash"] == "stable-hash"
 
