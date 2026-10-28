@@ -239,3 +239,46 @@ Memory note: the baseline now generates at most 128 new tokens, truncates each
 prompt to 4096 tokens, and disables the generation KV cache to reduce CUDA OOM
 risk on a 16 GB Colab GPU. Restart the runtime and smoke-test with `--limit 1`
 if the GPU still reports out-of-memory.
+
+## Qwen3-ASR-1.7B evaluation
+
+Install the official local inference package and download the ASR checkpoint:
+
+```python
+!pip install -q qwen-asr
+
+from huggingface_hub import snapshot_download
+snapshot_download(
+    repo_id="Qwen/Qwen3-ASR-1.7B",
+    local_dir="/content/models/qwen3-asr-1.7b",
+)
+```
+
+Run the existing ASR evaluator with the Qwen backend:
+
+```python
+%env PYTHONPATH=/content/LifeMate/src
+!python /content/LifeMate/asr_eval.py \
+  --root "$DATA_ROOT" \
+  --split train \
+  --asr-model /content/models/qwen3-asr-1.7b \
+  --asr-backend qwen3 \
+  --output /content/result/qwen3_asr_predictions.jsonl \
+  --report /content/result/qwen3_asr_report.json \
+  --limit 20 --device cuda --batch-size 1
+```
+
+Use `--batch-size 1` first to reduce VRAM usage. If the model loads correctly,
+try `2` or `4` and compare the report. The model and evaluator remain offline
+after the checkpoint has been downloaded.
+
+To use Qwen3-ASR in the complete LifeMate baseline, add the backend flag:
+
+```python
+!python /content/LifeMate/baseline.py \
+  --root "$DATA_ROOT" --split public_test \
+  --model /content/models/qwen3-1.7b \
+  --asr-model /content/models/qwen3-asr-1.7b \
+  --asr-backend qwen3 \
+  --output /content/result/qwen3_asr_submission.jsonl --limit 1
+```

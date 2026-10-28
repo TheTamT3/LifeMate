@@ -45,3 +45,63 @@ def test_chunkformer_adapter_uses_local_chunkformer_api(monkeypatch, tmp_path):
     audio.write_bytes(b"wav")
     adapter = ChunkFormerASR(tmp_path / "checkpoint")
     assert adapter.transcribe(audio) == "xin chào"
+def test_chunkformer_adapter_forwards_decode_parameters(monkeypatch, tmp_path):
+    calls = []
+
+    class FakeModel:
+        @classmethod
+        def from_pretrained(cls, path):
+            return cls()
+
+        def endless_decode(self, **kwargs):
+            calls.append(kwargs)
+            return "xin chào"
+
+    monkeypatch.setitem(sys.modules, "chunkformer", types.SimpleNamespace(ChunkFormerModel=FakeModel))
+    audio = tmp_path / "a.wav"
+    audio.write_bytes(b"wav")
+    adapter = ChunkFormerASR(
+        tmp_path / "checkpoint",
+        chunk_size=32,
+        left_context_size=64,
+        right_context_size=96,
+    )
+
+    adapter.transcribe(audio)
+
+    assert calls == [
+        {
+            "audio_path": str(audio),
+            "chunk_size": 32,
+            "left_context_size": 64,
+            "right_context_size": 96,
+            "total_batch_duration": 14400,
+        }
+    ]
+
+
+def test_qwen3_asr_adapter_uses_local_model_and_returns_text(monkeypatch, tmp_path):
+    calls = []
+
+    class FakeModel:
+        def transcribe(self, **kwargs):
+            calls.append(kwargs)
+            return [types.SimpleNamespace(text="xin chào")]
+
+    class FakeQwenModel:
+        @classmethod
+        def from_pretrained(cls, path, **kwargs):
+            calls.append((path, kwargs))
+            return FakeModel()
+
+    monkeypatch.setitem(sys.modules, "qwen_asr", types.SimpleNamespace(Qwen3ASRModel=FakeQwenModel))
+    audio = tmp_path / "a.wav"
+    audio.write_bytes(b"wav")
+
+    from lifemate.asr import Qwen3ASR
+
+    adapter = Qwen3ASR(tmp_path / "checkpoint", device="cpu")
+
+    assert adapter.transcribe(audio) == "xin chào"
+    assert calls[0][0] == str(tmp_path / "checkpoint")
+    assert calls[1] == {"audio": str(audio), "language": "Vietnamese"}

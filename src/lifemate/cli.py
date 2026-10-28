@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .asr import ChunkFormerASR
+from .asr import ChunkFormerASR, Qwen3ASR
 from .config import RuntimeConfig, seed_everything
 from .data import load_catalog, read_jsonl, split_paths
 from .llm import LocalQwenAgent
@@ -20,7 +20,17 @@ def validate_result(result: dict[str, Any]) -> None:
         raise ValueError("invalid result field types")
 
 
-def run_dataset(root: Path, split: str, model_path: Path, asr_model_path: Path, output: Path, limit: int | None = None, seed: int = 0, quantize: bool = False) -> None:
+def run_dataset(
+    root: Path,
+    split: str,
+    model_path: Path,
+    asr_model_path: Path,
+    output: Path,
+    limit: int | None = None,
+    seed: int = 0,
+    quantize: bool = False,
+    asr_backend: str = "chunkformer",
+) -> None:
     if split not in {"train", "public_test", "private_test"}:
         raise ValueError(f"unsupported split: {split}")
     config = RuntimeConfig(model_path, asr_model_path)
@@ -31,7 +41,12 @@ def run_dataset(root: Path, split: str, model_path: Path, asr_model_path: Path, 
         samples = samples[:limit]
     catalog = load_catalog(catalog_path)
     llm = LocalQwenAgent(config.model_path, config.max_new_tokens, seed, quantize=quantize)
-    asr = ChunkFormerASR(config.asr_model_path)
+    if asr_backend == "chunkformer":
+        asr = ChunkFormerASR(config.asr_model_path)
+    elif asr_backend == "qwen3":
+        asr = Qwen3ASR(config.asr_model_path, max_inference_batch_size=1)
+    else:
+        raise ValueError(f"unsupported ASR backend: {asr_backend}")
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("w", encoding="utf-8") as handle:
         for sample in samples:
@@ -58,5 +73,16 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--limit", type=int)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--quantize", action="store_true", help="Load the LLM with 4-bit NF4 quantization")
+    parser.add_argument("--asr-backend", choices=["chunkformer", "qwen3"], default="chunkformer")
     args = parser.parse_args(argv)
-    run_dataset(args.root, args.split, args.model, args.asr_model, args.output, args.limit, args.seed, args.quantize)
+    run_dataset(
+        args.root,
+        args.split,
+        args.model,
+        args.asr_model,
+        args.output,
+        args.limit,
+        args.seed,
+        args.quantize,
+        args.asr_backend,
+    )

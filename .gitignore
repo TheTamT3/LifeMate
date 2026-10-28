@@ -2,7 +2,9 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.pytest-gpu-tmp/
 .venv/
+.venv-gpu/
 venv/
 
 # Local checkpoints and generated outputs
