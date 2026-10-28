@@ -4,13 +4,28 @@ from lifemate import cli
 
 
 class FakeLLM:
-    def __init__(self, *args, **kwargs):
-        pass
+    pass
 
 
 class FakeASR:
     def __init__(self, *args, **kwargs):
         pass
+
+
+def test_main_passes_vllm_options(monkeypatch, tmp_path):
+    captured = {}
+
+    def fake_run_dataset(*args, **kwargs):
+        captured.update(kwargs)
+
+    monkeypatch.setattr(cli, "run_dataset", fake_run_dataset)
+    cli.main([
+        "--root", str(tmp_path), "--split", "train", "--model", str(tmp_path / "qwen"),
+        "--asr-model", str(tmp_path / "asr"), "--output", str(tmp_path / "out.jsonl"),
+        "--llm-base-url", "http://localhost:9000/v1", "--llm-model-name", "qwen3-4b",
+    ])
+    assert captured["llm_base_url"] == "http://localhost:9000/v1"
+    assert captured["llm_model_name"] == "qwen3-4b"
 
 
 def test_run_dataset_writes_utf8_jsonl_and_honors_limit(monkeypatch, tmp_path):
@@ -21,7 +36,7 @@ def test_run_dataset_writes_utf8_jsonl_and_honors_limit(monkeypatch, tmp_path):
         '{"id":"b","audio_text":"Hà Nội","context":{"installed_apps":{}}}\n', encoding="utf-8"
     )
     (split_dir / "train_tools_catalog.json").write_text('{"apps":[]}', encoding="utf-8")
-    monkeypatch.setattr(cli, "LocalQwenAgent", FakeLLM)
+    monkeypatch.setattr(cli, "create_vllm_model", lambda config: FakeLLM())
     monkeypatch.setattr(cli, "ChunkFormerASR", FakeASR)
     monkeypatch.setattr(cli, "run_sample", lambda sample, **kwargs: {"id": sample["id"], "tool_calls": [], "state_hash": "h"})
     output = tmp_path / "out" / "submission.jsonl"
@@ -59,7 +74,7 @@ def test_run_dataset_can_select_qwen3_asr(monkeypatch, tmp_path):
             selected.append((args, kwargs))
 
     monkeypatch.setattr(cli, "Qwen3ASR", FakeQwen)
-    monkeypatch.setattr(cli, "LocalQwenAgent", FakeLLM)
+    monkeypatch.setattr(cli, "create_vllm_model", lambda config: FakeLLM())
     monkeypatch.setattr(cli, "run_sample", lambda sample, **kwargs: {"id": sample["id"], "tool_calls": [], "state_hash": "h"})
     cli.run_dataset(tmp_path, "train", tmp_path / "qwen", tmp_path / "asr", tmp_path / "out.jsonl", asr_backend="qwen3")
 

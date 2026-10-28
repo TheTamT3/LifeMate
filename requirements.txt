@@ -3,7 +3,7 @@ transformers==4.57.1
 accelerate==1.10.1
 bitsandbytes>=0.43.0
 pydantic==2.12.3
-pydantic-ai[openai]==1.16.0
+pydantic-ai==1.16.0
 chunkformer==0.1.0
 qwen-asr
 pytest==9.1.1

@@ -1,42 +1,92 @@
-# LifeMate offline baseline runbook
+# Chạy baseline với PydanticAI và vLLM
 
-## Local preparation
+Baseline mới không load Qwen bằng Transformers trong process chính. Qwen được
+chạy bởi vLLM trên cùng máy/Colab, còn LifeMate gọi endpoint local qua
+PydanticAI.
 
-Place the Qwen3-4B checkpoint and the `khanhld/chunkformer-ctc-large-vie` checkpoint in local directories. Install the pinned dependencies from `requirements.txt`. No model download or network request is allowed during inference.
+## 1. Cài dependency
 
-For the local NVIDIA GPU environment created for this project:
+Trên Linux/Colab có GPU:
 
-```powershell
-& .\.venv-gpu\Scripts\Activate.ps1
-python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))"
+```bash
+pip install -r requirements.txt
+pip install vllm
 ```
 
-Use `--device cuda` for ASR. The environment uses a CUDA-enabled PyTorch build and is separate from the system Python environment.
+Trên Windows local chỉ cần cài dependency Python để chạy unit test; vLLM không
+bắt buộc phải chạy ở máy RTX 3050 4 GB.
 
-## Run one sample
+## 2. Chuẩn bị model
 
-```powershell
-$env:PYTHONPATH = "src"
-python baseline.py --root .\train+public_test\train+public_test --split train --model C:\models\qwen3-4b --asr-model C:\models\chunkformer-ctc-large-vie --output .\result\train.jsonl --limit 1
+Đặt bản local của checkpoint tại `/content/models/qwen3-4b` hoặc đường dẫn
+tương ứng trên server:
+
+```python
+from huggingface_hub import snapshot_download
+
+snapshot_download(
+    repo_id="Qwen/Qwen3-4B",
+    local_dir="/content/models/qwen3-4b",
+)
 ```
 
-For public audio, use `--split public_test`; the runner invokes the local ASR adapter. The train split may use its supplied `audio_text` for development.
+Inference chính thức phải dùng checkpoint đã tải sẵn; sau khi tải xong có thể
+ngắt mạng.
 
-## Evaluate ASR separately
+## 3. Khởi động vLLM
 
-The ASR evaluator uses the labelled `audio_text` in `train.jsonl` as reference and does not load Qwen, PydanticAI, or `ToolEnv`.
+Chạy process này trong một terminal/cell riêng:
 
-Run one local sample first:
-
-```powershell
-$env:PYTHONPATH = "src"
-python asr_eval.py --root .\train+public_test\train+public_test --split train --asr-model C:\models\chunkformer-ctc-large-vie --output .\result\asr_predictions.jsonl --report .\result\asr_report.json --limit 1 --device auto --batch-size 1
+```bash
+vllm serve /content/models/qwen3-4b \
+  --served-model-name qwen3-4b \
+  --host 127.0.0.1 \
+  --port 8000 \
+  --max-model-len 16384 \
+  --enable-auto-tool-choice \
+  --tool-call-parser qwen3_xml \
+  --reasoning-parser qwen3
 ```
 
-Run the full train evaluation by removing `--limit 1`. `--batch-size 1` is the safe default for limited VRAM; larger values are optional and preserve sample order, with a sequential fallback when native batch decoding is unavailable. In batch mode, `latency_seconds` is the measured batch wall time divided across valid samples, so use batch size 1 when comparing per-audio latency. The prediction JSONL contains strict metrics (`wer`, `cer`, `exact_match`), relaxed metrics (`relaxed_wer`, `relaxed_cer`, `relaxed_exact_match`), and supplementary fuzzy metrics (`fuzzy_token_f1`, `fuzzy_match`); relaxed scoring lowercases, removes punctuation, and normalizes whitespace, while `fuzzy_match` is true when token F1 is at least `0.8`. The report JSON contains aggregate strict/relaxed/fuzzy metrics and latency statistics.
+`qwen3_xml` là parser dành cho tool-call XML của Qwen3. Nếu phiên bản vLLM
+đang dùng không có parser này, kiểm tra danh sách parser của chính phiên bản đó
+trước khi chạy; không tự đổi sang parser của model khác.
 
-## Offline and reproducible operation
+Kiểm tra server đang chạy:
 
-Keep model loading local-only, use deterministic decoding and a fixed `--seed`. The runner creates exactly one official `ToolEnv` for each sample and obtains both `tool_calls` and `state_hash` from that environment. It never reads `state.json` directly. Output is UTF-8 JSONL with one object containing `id`, `tool_calls`, and `state_hash` per line.
+```bash
+curl http://127.0.0.1:8000/v1/models
+```
 
-Measure wall time on organiser-like hardware; a sample must finish within 30 seconds. The real checkpoint smoke command should be run once for a train sample and once for a public sample after local weights are prepared.
+Lệnh kiểm tra chỉ dùng trong môi trường phát triển; inference vẫn chỉ gọi
+`127.0.0.1`, không gọi dịch vụ bên ngoài.
+
+## 4. Chạy baseline
+
+```bash
+PYTHONPATH=src python baseline.py \
+  --root /content/data/train+public_test/train+public_test \
+  --split train \
+  --model /content/models/qwen3-4b \
+  --asr-model /content/models/chunkformer-ctc-large-vie \
+  --llm-base-url http://127.0.0.1:8000/v1 \
+  --llm-model-name qwen3-4b \
+  --output /content/result/submission.jsonl \
+  --limit 1
+```
+
+`--model` hiện được giữ để tương thích CLI cũ; model LLM thực tế được chọn bởi
+`--llm-model-name` ở vLLM. ASR vẫn dùng `--asr-model` và `--asr-backend` như
+trước.
+
+Chạy public test bằng cách đổi `--split public_test` và bỏ `--limit`. Mỗi dòng
+output phải có đúng `id`, `tool_calls`, `state_hash`.
+
+## 5. Quy tắc offline
+
+- Không dùng URL LLM ngoài `localhost`, `127.0.0.1` hoặc `::1`.
+- Không gọi OpenAI, ElevenLabs, Hugging Face Inference API hay dịch vụ ngoài tại
+  inference.
+- Không đọc `state.json`; app state chỉ đi qua `ToolEnv`.
+- Nếu vLLM chưa chạy, baseline phải dừng với lỗi kết nối thay vì tự chuyển sang
+  provider remote.
