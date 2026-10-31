@@ -26,7 +26,7 @@ class FakeAgent:
     def __init__(self, actions):
         self.actions = actions
 
-    def run_sync(self, prompt, *, deps, usage_limits, model_settings):
+    def run_sync(self, prompt, *, deps, usage_limits, model_settings, message_history):
         for name, arguments in self.actions:
             deps.env.call(name, arguments)
 

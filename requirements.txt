@@ -7,3 +7,7 @@ pydantic-ai==1.16.0
 chunkformer==0.1.0
 qwen-asr
 pytest==9.1.1
+
+# Opt-in debug tracing
+langsmith==0.14.14
+python-dotenv>=1.0,<2

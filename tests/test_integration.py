@@ -19,7 +19,7 @@ class Env:
 
 
 class Agent:
-    def run_sync(self, prompt, *, deps, usage_limits, model_settings):
+    def run_sync(self, prompt, *, deps, usage_limits, model_settings, message_history):
         deps.env.call("weather.get_current", {})
 
 

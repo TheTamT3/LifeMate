@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from ..asr import ASR, ChunkFormerASR, Qwen3ASR
+from ..asr import ASR, ChunkFormerASR, ParakeetASR, Qwen3ASR, WhisperASR
 from ..data import read_jsonl, split_paths
 from .metrics import transcript_metrics
 
@@ -77,6 +77,10 @@ def evaluate_dataset(
         recognizer = ChunkFormerASR(Path(asr_model), device=device)
     elif asr_backend == "qwen3":
         recognizer = Qwen3ASR(Path(asr_model), device=device, max_inference_batch_size=batch_size)
+    elif asr_backend == "whisper":
+        recognizer = WhisperASR(Path(asr_model), device=device)
+    elif asr_backend == "parakeet":
+        recognizer = ParakeetASR(Path(asr_model), device=device)
     else:
         raise ValueError(f"unsupported ASR backend: {asr_backend}")
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import wave
 from pathlib import Path
 from collections.abc import Sequence
 from typing import Any, Protocol
@@ -137,6 +138,146 @@ class Qwen3ASR:
             audio=[str(path) for path in paths],
             language=[self.language] * len(paths),
         )
+        return [self._text(item) for item in result]
+
+
+class WhisperASR:
+    """Lazy Transformers pipeline adapter for Whisper-family checkpoints.
+
+    This also supports Vietnamese fine-tunes such as BuzzASR when the local
+    checkpoint exposes the standard Transformers speech-sequence-to-sequence
+    interface.
+    """
+
+    def __init__(
+        self,
+        model_path: Path,
+        device: str = "auto",
+        *,
+        language: str = "vi",
+    ) -> None:
+        self.model_path = Path(model_path)
+        self.device = device
+        self.language = language
+        self._pipeline: Any | None = None
+
+    def _load(self) -> Any:
+        if self._pipeline is None:
+            try:
+                import torch
+                from transformers import pipeline
+            except ImportError as exc:
+                raise RuntimeError(
+                    "Whisper ASR requires the 'transformers' and 'torch' packages"
+                ) from exc
+
+            use_cuda = self.device == "cuda" or (
+                self.device == "auto" and torch.cuda.is_available()
+            )
+            self._pipeline = pipeline(
+                "automatic-speech-recognition",
+                model=str(self.model_path),
+                device=0 if use_cuda else -1,
+                torch_dtype=torch.float16 if use_cuda else torch.float32,
+            )
+        return self._pipeline
+
+    @staticmethod
+    def _text(result: Any) -> str:
+        if isinstance(result, dict):
+            return str(result.get("text", "")).strip()
+        return str(getattr(result, "text", result)).strip()
+
+    @staticmethod
+    def _audio_input(audio_path: Path) -> Any:
+        """Read PCM WAV without relying on an external ffmpeg executable."""
+
+        try:
+            import numpy as np
+
+            with wave.open(str(audio_path), "rb") as handle:
+                channels = handle.getnchannels()
+                sample_width = handle.getsampwidth()
+                sample_rate = handle.getframerate()
+                frames = handle.readframes(handle.getnframes())
+            if sample_width == 1:
+                audio = np.frombuffer(frames, dtype=np.uint8).astype(np.float32)
+                audio = (audio - 128.0) / 128.0
+            elif sample_width == 2:
+                audio = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
+            elif sample_width == 4:
+                audio = np.frombuffer(frames, dtype=np.int32).astype(np.float32) / 2147483648.0
+            else:
+                raise ValueError(f"unsupported WAV sample width: {sample_width}")
+            if channels > 1:
+                audio = audio.reshape(-1, channels).mean(axis=1)
+            return {"array": audio, "sampling_rate": sample_rate}
+        except (EOFError, ImportError, OSError, ValueError, wave.Error):
+            # Keep mocked/test pipelines and non-WAV Transformers inputs usable.
+            return str(audio_path)
+
+    def transcribe(self, audio_path: Path) -> str:
+        if not audio_path.exists():
+            raise FileNotFoundError(audio_path)
+        return self._text(
+            self._load()(
+                self._audio_input(audio_path),
+                generate_kwargs={
+                    "language": self.language,
+                    "task": "transcribe",
+                    "no_repeat_ngram_size": 3,
+                    "repetition_penalty": 1.2,
+                },
+            )
+        )
+
+    def transcribe_batch(self, audio_paths: Sequence[Path]) -> list[str]:
+        return [self.transcribe(path) for path in audio_paths]
+
+
+class ParakeetASR:
+    """Lazy NeMo adapter for Parakeet Vietnamese checkpoints."""
+
+    def __init__(self, model_path: Path, device: str = "auto") -> None:
+        self.model_path = Path(model_path)
+        self.device = device
+        self._model: Any | None = None
+
+    def _load(self) -> Any:
+        if self._model is None:
+            try:
+                from nemo.collections.asr.models import ASRModel
+            except ImportError as exc:
+                raise RuntimeError(
+                    "Parakeet ASR requires NeMo; install nemo_toolkit[asr] before use"
+                ) from exc
+            self._model = ASRModel.from_pretrained(model_name=str(self.model_path))
+            if self.device != "auto" and hasattr(self._model, "to"):
+                self._model = self._model.to(self.device)
+        return self._model
+
+    @staticmethod
+    def _text(result: Any) -> str:
+        if isinstance(result, (list, tuple)):
+            result = result[0] if result else ""
+        if isinstance(result, dict):
+            return str(result.get("text", result.get("decoded_text", ""))).strip()
+        return str(getattr(result, "text", result)).strip()
+
+    def transcribe(self, audio_path: Path) -> str:
+        if not audio_path.exists():
+            raise FileNotFoundError(audio_path)
+        result = self._load().transcribe([str(audio_path)])
+        return self._text(result)
+
+    def transcribe_batch(self, audio_paths: Sequence[Path]) -> list[str]:
+        paths = list(audio_paths)
+        for path in paths:
+            if not path.exists():
+                raise FileNotFoundError(path)
+        if not paths:
+            return []
+        result = self._load().transcribe([str(path) for path in paths])
         return [self._text(item) for item in result]
 
 

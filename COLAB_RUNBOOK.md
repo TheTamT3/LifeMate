@@ -282,3 +282,55 @@ To use Qwen3-ASR in the complete LifeMate baseline, add the backend flag:
   --asr-backend qwen3 \
   --output /content/result/qwen3_asr_submission.jsonl --limit 1
 ```
+
+## ASR model comparison
+
+The evaluator also supports the following local backends:
+
+- `parakeet`: NeMo Parakeet Vietnamese checkpoint
+- `whisper`: Whisper-family checkpoints, including Whisper Turbo and BuzzASR
+
+For Parakeet, install NeMo and download `nmcuong/parakeet-tdt-0.6b-v3-vietnamese`:
+
+```python
+!pip install -q "nemo_toolkit[asr]"
+from huggingface_hub import snapshot_download
+snapshot_download(
+    repo_id="nmcuong/parakeet-tdt-0.6b-v3-vietnamese",
+    local_dir="/content/models/parakeet-vietnamese",
+)
+```
+
+For Whisper Turbo or BuzzASR, Transformers is already installed:
+
+```python
+snapshot_download(
+    repo_id="openai/whisper-large-v3-turbo",
+    local_dir="/content/models/whisper-large-v3-turbo",
+)
+# Or use: repo_id="BuzzASR/vietnamese"
+```
+
+Run each model on the same samples:
+
+```python
+%env PYTHONPATH=/content/LifeMate/src
+!python /content/LifeMate/asr_eval.py \
+  --root "$DATA_ROOT" --split train \
+  --asr-model /content/models/parakeet-vietnamese \
+  --asr-backend parakeet \
+  --output /content/result/parakeet_predictions.jsonl \
+  --report /content/result/parakeet_report.json \
+  --limit 100 --device cuda --batch-size 1
+
+!python /content/LifeMate/asr_eval.py \
+  --root "$DATA_ROOT" --split train \
+  --asr-model /content/models/whisper-large-v3-turbo \
+  --asr-backend whisper \
+  --output /content/result/whisper_turbo_predictions.jsonl \
+  --report /content/result/whisper_turbo_report.json \
+  --limit 100 --device cuda --batch-size 1
+```
+
+Compare `average_relaxed_wer`, `average_fuzzy_token_f1`, and latency in the
+generated report files. Use the same 100 samples for every model.

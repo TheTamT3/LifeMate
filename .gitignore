@@ -23,3 +23,21 @@ train+public_test/
 
 # Superpowers execution scratch space
 .superpowers/
+
+# Local public test dataset
+/data/public_test/
+
+# Local package download cache
+.cache/
+
+# Local secrets
+.env
+.env.*
+!.env.example
+.end
+
+# Local training dataset
+/data/train/
+
+# Fixed local validation subset (generated from training data)
+/data/validation_300/

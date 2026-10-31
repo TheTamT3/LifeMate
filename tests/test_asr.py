@@ -105,3 +105,51 @@ def test_qwen3_asr_adapter_uses_local_model_and_returns_text(monkeypatch, tmp_pa
     assert adapter.transcribe(audio) == "xin chào"
     assert calls[0][0] == str(tmp_path / "checkpoint")
     assert calls[1] == {"audio": str(audio), "language": "Vietnamese"}
+
+
+def test_beam_adapter_checks_vocab_and_restores_model_after_failure(monkeypatch, tmp_path):
+    import hashlib
+    import json
+    from lifemate.asr_eval.ctc_decoder import BackoffLM
+    checkpoint=tmp_path/'checkpoint'; checkpoint.mkdir()
+    vocab=checkpoint/'vocab.txt'; vocab.write_text('<blank> 0\n▁tắt 1\n')
+    config={'version':1,'vocab_sha256':hashlib.sha256(vocab.read_bytes()).hexdigest(),
+            'language_model':BackoffLM(['tắt']).to_dict(),'beam_width':4,'token_top_k':2,'alpha':.3,'beta':1.}
+    artifact=tmp_path/'decoder.json'; artifact.write_text(json.dumps(config))
+    class Model:
+        char_dict={0:'<blank>',1:'▁tắt'}
+        def endless_decode(self, **kwargs):
+            assert self.char_dict is None
+            raise RuntimeError('decode failed')
+    model=Model(); adapter=ChunkFormerASR(checkpoint,ctc_decoder_path=artifact); adapter._pipeline=model
+    audio=tmp_path/'a.wav'; audio.write_bytes(b'wav')
+    with pytest.raises(RuntimeError,match='decode failed'): adapter.transcribe(audio)
+    assert model.char_dict=={0:'<blank>',1:'▁tắt'}
+    config['vocab_sha256']='wrong'; artifact.write_text(json.dumps(config))
+    adapter=ChunkFormerASR(checkpoint,ctc_decoder_path=artifact)
+    with pytest.raises(ValueError,match='vocabulary'): adapter.transcribe(audio)
+
+
+def test_beam_adapter_decodes_acoustic_logits_with_loaded_artifact(tmp_path):
+    import hashlib
+    import json
+    import numpy as np
+    from lifemate.asr_eval.ctc_decoder import BackoffLM
+    checkpoint=tmp_path/'checkpoint'; checkpoint.mkdir()
+    vocab=checkpoint/'vocab.txt'; vocab.write_text('<blank> 0\n▁tắt 1\n▁đèn 2\n')
+    artifact=tmp_path/'decoder.json'
+    artifact.write_text(json.dumps({'version':1,'vocab_sha256':hashlib.sha256(vocab.read_bytes()).hexdigest(),
+        'language_model':BackoffLM(['tắt đèn']).to_dict(),'beam_width':8,'token_top_k':3,'alpha':.3,'beta':1.}))
+    class Logits:
+        def float(self): return self
+        def cpu(self): return self
+        def numpy(self): return np.log([[.001,.998,.001],[.001,.001,.998]])
+    class Model:
+        char_dict={0:'<blank>',1:'▁tắt',2:'▁đèn'}
+        def endless_decode(self, **kwargs):
+            assert self.char_dict is None and kwargs['return_timestamps'] is False
+            return Logits()
+    model=Model(); adapter=ChunkFormerASR(checkpoint,ctc_decoder_path=artifact); adapter._pipeline=model
+    audio=tmp_path/'a.wav'; audio.write_bytes(b'wav')
+    assert adapter.transcribe(audio)=='tắt đèn'
+    assert model.char_dict[1]=='▁tắt'
