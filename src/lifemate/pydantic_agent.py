@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import inspect
 import re
 from dataclasses import dataclass, field
 from datetime import date, datetime, time
@@ -29,6 +30,15 @@ class _FallbackUsageLimits:
 def _safe_name(name: str, index: int) -> str:
     value = re.sub(r"[^a-zA-Z0-9_]+", "_", name).strip("_") or "tool"
     return f"lifemate_tool_{index}_{value}"
+
+
+def tool_name_map(tools: list[dict[str, Any]]) -> dict[str, str]:
+    """Map catalog names to stable PydanticAI wire names."""
+
+    return {
+        str(tool["name"]): _safe_name(str(tool["name"]), index)
+        for index, tool in enumerate(tools)
+    }
 
 
 def _annotation(spec: dict[str, Any]) -> Any:
@@ -172,11 +182,14 @@ def build_tool_definitions(deps: AgentDependencies) -> list[Any]:
             return _json_safe(result)
 
         schema = _catalog_json_schema(argument_model, tool)
+        description = str(tool.get("description", ""))
+        if official_name not in description:
+            description = f"Official tool name: {official_name}. {description}".strip()
         definitions.append(
             Tool.from_schema(
                 invoke,
                 name=internal_name,
-                description=str(tool.get("description", "")),
+                description=description,
                 json_schema=schema,
                 takes_ctx=True,
                 sequential=True,
@@ -203,7 +216,14 @@ def build_agent(model: Any, deps: AgentDependencies) -> Any:
     )
 
 
-def run_agent(agent: Any, deps: AgentDependencies, prompt: str) -> Any:
+def run_agent(
+    agent: Any,
+    deps: AgentDependencies,
+    prompt: str,
+    *,
+    message_history: list[Any] | None = None,
+    instructions: str | None = None,
+) -> Any:
     """Run one PydanticAI conversation with deterministic settings.
 
     PydanticAI owns the model/tool message loop. The registered tools are
@@ -226,6 +246,8 @@ def run_agent(agent: Any, deps: AgentDependencies, prompt: str) -> Any:
                 async with agent.iter(
                     prompt,
                     deps=deps,
+                    message_history=message_history or [],
+                    instructions=instructions,
                     usage_limits=usage_limits,
                     model_settings=settings,
                 ) as agent_run:
@@ -239,7 +261,15 @@ def run_agent(agent: Any, deps: AgentDependencies, prompt: str) -> Any:
                     return getattr(agent_run, "result", None)
 
             return asyncio.run(drive())
-        return agent.run_sync(prompt, deps=deps, usage_limits=usage_limits, model_settings=settings)
+        run_kwargs = {
+            "deps": deps,
+            "message_history": message_history or [],
+            "usage_limits": usage_limits,
+            "model_settings": settings,
+        }
+        if instructions is not None and "instructions" in inspect.signature(agent.run_sync).parameters:
+            run_kwargs["instructions"] = instructions
+        return agent.run_sync(prompt, **run_kwargs)
     except Exception as exc:  # provider failures must not create synthetic calls
         deps.error = str(exc)
         return None
