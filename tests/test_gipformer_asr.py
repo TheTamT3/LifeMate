@@ -39,3 +39,33 @@ def test_gipformer_rejects_cpu_wheel_when_cuda_requested(monkeypatch,tmp_path):
 def test_gipformer_rejects_missing_local_weights(monkeypatch,tmp_path):
     monkeypatch.setitem(sys.modules,'sherpa_onnx',types.SimpleNamespace(__version__='1.13.3'))
     with pytest.raises(FileNotFoundError): GipformerASR(tmp_path,provider='cpu')._load()
+
+
+def test_cuda_rejects_cpu_wheel_even_with_transducer_factory(monkeypatch, tmp_path):
+    for name in ['encoder.onnx', 'decoder.onnx', 'joiner.onnx', 'tokens.txt']:
+        (tmp_path / name).write_bytes(b'model')
+    def factory(**kwargs):
+        pytest.fail('CPU wheel must be rejected before constructing recognizer')
+    monkeypatch.setitem(sys.modules, 'sherpa_onnx', types.SimpleNamespace(
+        __version__='1.13.3',
+        OfflineRecognizer=types.SimpleNamespace(from_transducer=factory),
+    ))
+    with pytest.raises(RuntimeError, match='CUDA-enabled'):
+        GipformerASR(tmp_path, device='cuda')._load()
+
+
+def test_cuda_wheel_passes_cuda_provider(monkeypatch, tmp_path):
+    for name in ['encoder.onnx', 'decoder.onnx', 'joiner.onnx', 'tokens.txt']:
+        (tmp_path / name).write_bytes(b'model')
+    config = {}
+    recognizer = object()
+    def factory(**kwargs):
+        config.update(kwargs)
+        return recognizer
+    monkeypatch.setitem(sys.modules, 'sherpa_onnx', types.SimpleNamespace(
+        __version__='1.13.3+cuda12.cudnn9',
+        OfflineRecognizer=types.SimpleNamespace(from_transducer=factory),
+    ))
+    asr = GipformerASR(tmp_path, device='cuda')
+    assert asr._load() is recognizer
+    assert config['provider'] == 'cuda'

@@ -1,3 +1,5 @@
 # Gipformer 1.5 RNN-T local inference runtime.
-sherpa-onnx==1.13.3
+# Official CUDA 12 / cuDNN 9 wheels (Linux x86_64 or Windows x64).
+--find-links https://k2-fsa.github.io/sherpa/onnx/cuda.html
+sherpa-onnx==1.13.3+cuda12.cudnn9
 soundfile>=0.12,<1

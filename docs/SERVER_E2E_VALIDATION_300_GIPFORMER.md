@@ -54,7 +54,7 @@ nvidia-smi
 
 ```bash
 pip install -r requirements.txt
-pip install -r requirements-gipformer.txt
+python -m pip install -r requirements-gipformer.txt
 python -m pip install --upgrade pip
 python -m pip install vllm --extra-index-url https://download.pytorch.org/whl/cu129
 vllm download-kernels
@@ -74,10 +74,27 @@ python - <<'PY'
 import sherpa_onnx
 print('sherpa_onnx:', getattr(sherpa_onnx, '__version__', 'unknown'))
 print('transducer:', hasattr(sherpa_onnx.OfflineRecognizer, 'from_transducer'))
+assert 'cuda' in sherpa_onnx.__version__.lower(), 'Install requirements-gipformer.txt for the CUDA wheel'
 PY
 ```
 
-Nếu `transducer` là `False` khi chạy CUDA, wheel đang dùng là CPU-only; cần cài wheel sherpa-onnx có CUDA provider trước khi chạy.
+`requirements-gipformer.txt` dùng wheel chính thức `1.13.3+cuda12.cudnn9`
+cho Linux x86_64 / Windows x64, cần CUDA 12.x và cuDNN 9 theo
+[hướng dẫn sherpa-onnx](https://k2-fsa.github.io/sherpa/onnx/python/install.html).
+Không dùng riêng việc có `from_transducer` để kết luận wheel hỗ trợ GPU:
+wheel CPU cũng có API này.
+
+Nếu đã cài wheel CPU, chạy lại bằng đúng Python dùng chạy smoke test:
+
+```bash
+python -m pip install -r requirements-gipformer.txt
+python -m pip check
+```
+
+Sau đó chạy smoke test mục 8 và kiểm tra `nvidia-smi` khi ASR đang suy luận.
+Phiên bản wheel có `cuda` chỉ xác nhận loại build, không chứng minh GPU đã được
+sử dụng. Nếu vẫn thấy `Fallback to cpu`, kiểm tra CUDA/cuDNN và thư viện động
+trên server; không coi lần chạy đó là kiểm thử ASR GPU thành công.
 
 ## 4. Chuẩn bị dữ liệu train gốc
 

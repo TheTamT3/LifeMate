@@ -318,6 +318,14 @@ class GipformerASR:
             import sherpa_onnx
         except ImportError as exc:
             raise RuntimeError("Gipformer ASR requires sherpa-onnx; install requirements-gipformer.txt") from exc
+        # Official GPU wheels include '+cuda...' in their version. The CPU
+        # wheel also has from_transducer, but silently falls back to CPU.
+        if self.provider == "cuda" and "cuda" not in getattr(sherpa_onnx, "__version__", "").lower():
+            raise RuntimeError(
+                "sherpa-onnx installation is CPU-only or an unverified custom build; "
+                "install the official CUDA-enabled wheel with "
+                "python -m pip install -r requirements-gipformer.txt"
+            )
         factory = getattr(getattr(sherpa_onnx, "OfflineRecognizer", None), "from_transducer", None)
         if factory is None:
             if self.provider == "cuda":
