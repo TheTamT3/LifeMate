@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from ..asr import ASR, ChunkFormerASR, ParakeetASR, Qwen3ASR, WhisperASR
+from ..asr import ASR, ChunkFormerASR, GipformerASR, ParakeetASR, Qwen3ASR, WhisperASR
 from ..data import read_jsonl, split_paths
 from .metrics import transcript_metrics
 
@@ -81,6 +81,8 @@ def evaluate_dataset(
         recognizer = WhisperASR(Path(asr_model), device=device)
     elif asr_backend == "parakeet":
         recognizer = ParakeetASR(Path(asr_model), device=device)
+    elif asr_backend == "gipformer":
+        recognizer = GipformerASR(Path(asr_model), device=device)
     else:
         raise ValueError(f"unsupported ASR backend: {asr_backend}")
 

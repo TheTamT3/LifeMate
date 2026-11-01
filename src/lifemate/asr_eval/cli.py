@@ -19,7 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument(
         "--asr-backend",
-        choices=("chunkformer", "qwen3", "whisper", "parakeet"),
+        choices=("chunkformer", "qwen3", "whisper", "parakeet", "gipformer"),
         default="chunkformer",
     )
     parser.add_argument("--seed", type=int, default=0)

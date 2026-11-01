@@ -281,6 +281,93 @@ class ParakeetASR:
         return [self._text(item) for item in result]
 
 
+class GipformerASR:
+    """Local sherpa-onnx adapter for Gipformer RNN-T checkpoints."""
+
+    def __init__(
+        self,
+        model_path: Path,
+        device: str = "auto",
+        *,
+        provider: str | None = None,
+        precision: str = "fp32",
+        num_threads: int = 4,
+        sample_rate: int = 16000,
+        feature_dim: int = 80,
+        decoding_method: str = "modified_beam_search",
+        max_active_paths: int = 4,
+    ) -> None:
+        self.model_path = Path(model_path)
+        self.provider = provider or ("cuda" if device in {"auto", "cuda"} else "cpu")
+        self.precision = precision
+        self.num_threads = num_threads
+        self.sample_rate = sample_rate
+        self.feature_dim = feature_dim
+        self.decoding_method = decoding_method
+        self.max_active_paths = max_active_paths
+        self._recognizer: Any | None = None
+
+    def _load(self) -> Any:
+        if self._recognizer is not None:
+            return self._recognizer
+        paths = {name: self.model_path / name for name in ("encoder.onnx", "decoder.onnx", "joiner.onnx", "tokens.txt")}
+        missing = [str(path) for path in paths.values() if not path.exists()]
+        if missing and self.provider != "cuda":
+            raise FileNotFoundError(f"Gipformer checkpoint is missing local files: {', '.join(missing)}")
+        try:
+            import sherpa_onnx
+        except ImportError as exc:
+            raise RuntimeError("Gipformer ASR requires sherpa-onnx; install requirements-gipformer.txt") from exc
+        factory = getattr(getattr(sherpa_onnx, "OfflineRecognizer", None), "from_transducer", None)
+        if factory is None:
+            if self.provider == "cuda":
+                raise RuntimeError("sherpa-onnx installation is CPU-only; install a CUDA-enabled wheel")
+            raise RuntimeError("sherpa-onnx does not provide OfflineRecognizer.from_transducer")
+        if missing:
+            raise FileNotFoundError(f"Gipformer checkpoint is missing local files: {', '.join(missing)}")
+        self._recognizer = factory(
+            encoder=str(paths["encoder.onnx"]),
+            decoder=str(paths["decoder.onnx"]),
+            joiner=str(paths["joiner.onnx"]),
+            tokens=str(paths["tokens.txt"]),
+            num_threads=self.num_threads,
+            sample_rate=self.sample_rate,
+            feature_dim=self.feature_dim,
+            decoding_method=self.decoding_method,
+            max_active_paths=self.max_active_paths,
+            provider=self.provider,
+        )
+        return self._recognizer
+
+    def transcribe(self, audio_path: Path) -> str:
+        return self.transcribe_batch([audio_path])[0]
+
+    def transcribe_batch(self, audio_paths: Sequence[Path]) -> list[str]:
+        paths = list(audio_paths)
+        for path in paths:
+            if not path.exists():
+                raise FileNotFoundError(path)
+        if not paths:
+            return []
+        try:
+            import soundfile as sf
+        except ImportError as exc:
+            raise RuntimeError("Gipformer ASR requires soundfile; install requirements-gipformer.txt") from exc
+        recognizer = self._load()
+        outputs: list[str] = []
+        for path in paths:
+            samples, sample_rate = sf.read(str(path), dtype="float32", always_2d=False)
+            if sample_rate != self.sample_rate:
+                raise ValueError(f"Gipformer expects {self.sample_rate} Hz audio, got {sample_rate} Hz: {path}")
+            if getattr(samples, "ndim", 1) > 1:
+                samples = samples.mean(axis=1)
+            stream = recognizer.create_stream()
+            stream.accept_waveform(self.sample_rate, samples)
+            recognizer.decode_streams([stream])
+            outputs.append(str(getattr(stream.result, "text", "")).strip())
+        return outputs
+
+
 def transcript(sample: dict[str, Any], asr: ASR | None) -> str:
     if "audio_text" in sample:
         return str(sample["audio_text"])

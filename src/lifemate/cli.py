@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .asr import ChunkFormerASR, ParakeetASR, Qwen3ASR, WhisperASR
+from .asr import ChunkFormerASR, GipformerASR, ParakeetASR, Qwen3ASR, WhisperASR
 from .config import RuntimeConfig, seed_everything
 from .data import load_catalog, read_jsonl, split_paths
 from .runner import run_sample
@@ -56,6 +56,8 @@ def run_dataset(
         asr = WhisperASR(config.asr_model_path)
     elif asr_backend == "parakeet":
         asr = ParakeetASR(config.asr_model_path)
+    elif asr_backend == "gipformer":
+        asr = GipformerASR(config.asr_model_path, device="cuda")
     else:
         raise ValueError(f"unsupported ASR backend: {asr_backend}")
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -89,7 +91,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--llm-model-name", default="qwen3-4b")
     parser.add_argument(
         "--asr-backend",
-        choices=["chunkformer", "qwen3", "whisper", "parakeet"],
+        choices=["chunkformer", "qwen3", "whisper", "parakeet", "gipformer"],
         default="chunkformer",
     )
     args = parser.parse_args(argv)
