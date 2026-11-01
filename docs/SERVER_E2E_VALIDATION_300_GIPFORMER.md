@@ -178,6 +178,67 @@ snapshot_download(
 PY
 ```
 
+### 6.1. Tải Qwen3-4B-Thinking-2507 (tùy chọn)
+
+Chạy từ thư mục gốc repo trên server, trong môi trường Python dùng chạy vLLM:
+
+```bash
+cd /workspace/LifeMate
+python - <<'PY'
+from huggingface_hub import snapshot_download
+
+snapshot_download(
+    repo_id='Qwen/Qwen3-4B-Thinking-2507',
+    local_dir='models/qwen3-4b-thinking-2507',
+)
+PY
+```
+
+Kiểm tra cấu hình và trọng số đã tải:
+
+```bash
+ls models/qwen3-4b-thinking-2507/config.json
+ls models/qwen3-4b-thinking-2507/*.safetensors
+```
+
+Để dùng checkpoint này, thay đường dẫn sau `vllm serve` ở mục 7 bằng
+`models/qwen3-4b-thinking-2507`. Có thể giữ alias
+`--served-model-name qwen3-4b`; khi đó các lệnh smoke test vẫn dùng
+`--llm-model-name qwen3-4b`, còn `--model` đổi thành
+`models/qwen3-4b-thinking-2507`. Dừng instance vLLM cũ trước khi chạy lại
+trên cùng cổng 8000. Bản này chỉ hỗ trợ thinking.
+
+### 6.2. Tải Qwen3.5-4B (tùy chọn)
+
+Chạy từ thư mục gốc repo trên server, trong môi trường Python dùng chạy vLLM.
+Kiểm tra dung lượng ổ đĩa trước khi tải:
+
+```bash
+cd /workspace/LifeMate
+df -h .
+python - <<'PY'
+from huggingface_hub import snapshot_download
+
+snapshot_download(
+    repo_id='Qwen/Qwen3.5-4B',
+    local_dir='models/qwen3.5-4b',
+)
+PY
+```
+
+Kiểm tra cấu hình và trọng số đã tải:
+
+```bash
+ls models/qwen3.5-4b/config.json
+ls models/qwen3.5-4b/*.safetensors
+```
+
+Khi khởi động vLLM, dùng đường dẫn local `models/qwen3.5-4b` để tránh
+tải lại model vào cache. Qwen3.5 cần phiên bản vLLM hỗ trợ kiến trúc này;
+không dùng nguyên cấu hình parser của Qwen3 ở mục 7. Hướng dẫn chính thức
+dùng `--reasoning-parser qwen3` và `--tool-call-parser qwen3_coder`:
+[Qwen3.5-4B](https://huggingface.co/Qwen/Qwen3.5-4B#quickstart).
+
 Kiểm tra file Gipformer:
 
 ```bash
@@ -244,19 +305,6 @@ kill "$(cat logs/vllm.pid)"
 
 ## 8. Smoke test một sample
 
-Agent dùng cấu hình thinking của Qwen3: `temperature=0.6`, `top_p=0.95`,
-`top_k=20`, `min_p=0`, giữ seed theo CLI. Request vLLM truyền rõ
-`chat_template_kwargs.enable_thinking=true`. System prompt yêu cầu reasoning
-và giải thích bằng tiếng Việt, giữ nguyên tên tool, khóa JSON và mã định danh;
-đây là chỉ dẫn ngôn ngữ, không bảo đảm tuyệt đối model luôn tuân thủ.
-
-History gửi lại model bỏ các `ThinkingPart`, giữ text, tool calls và tool
-results. Reasoning mới vẫn được lưu ở response của từng model span trên
-LangSmith. Metadata Experiment ghi `model_settings`, `reasoning_language=vi`,
-`thinking_in_history=false`, `prompt_version=vi-qwen-thinking-v1` để so với
-baseline. Context, số lượt gọi model và presence penalty không đổi. Không
-cần restart vLLM cho thay đổi cấu hình request/prompt này.
-
 Bước này chạy full pipeline thật, không mock ASR/model/ToolEnv, và gửi trace
 phân cấp lên LangSmith. Cài thêm dependency debug:
 
@@ -295,41 +343,7 @@ Script tạo hoặc tái sử dụng dataset và tạo một Experiment mới ch
 Mỗi root trace được liên kết với một dataset example qua `reference_example_id`.
 Mở dataset tương ứng trong **Datasets & Experiments** để xem các lần chạy và
 trace từng row. Example không đổi được tái sử dụng; thay đổi nội dung sample tạo
-example mới. Reference outputs lấy từ `label.tool_calls` và gold state hash;
-`label` không nằm trong inputs gửi cho agent.
-
-Mỗi sample train chạy thành công được gắn hai feedback score vào root run:
-
-- `tool_call_accuracy`: 1 khi toàn bộ call khớp một-một với gold (không xét
-  thứ tự), không thừa/thiếu call, đúng schema và arguments; trường fuzzy dùng
-  token-F1 > 0.6. Đây là metric local dạng đúng/sai, không phải F1 leaderboard.
-- `state_hash_match`: 1 khi hash thực tế khớp gold. Gold được dựng bằng cách
-  thay state của các app trong `label.final_state` vào bản sao state ban đầu,
-  rồi gọi `zaic_tools.utils.state_hash`; không tạo thêm ToolEnv hay sửa file state.
-
-Điểm 0 biểu thị không khớp. Sample lỗi inference được đánh dấu lỗi, không giả
-lập điểm. Lỗi gửi feedback được ghi riêng là `evaluation_error`. Các split
-không có label chỉ ghi trace. Kết quả được gửi lên LangSmith, không ghi JSONL
-local trong script này. Thiếu label train sẽ báo lỗi trước khi chạy.
-
-Trong mỗi row, trace có cấu trúc:
-
-```text
-lifemate.e2e.sample
-├── asr.gipformer.transcribe / input.reference_text
-└── agent.pydantic_ai
-    ├── llm.<model>       # request/response, messages, tool schemas, usage
-    ├── tool.<name>       # arguments, output hoặc lỗi
-    ├── llm.<model>       # lượt tiếp theo kèm tool results trong messages
-    └── ...
-```
-
-Mỗi lượt gọi model không streaming được ghi riêng với thời gian bắt đầu/kết
-thúc và token usage do provider trả về. Agent span ghi prompt, instructions,
-history và message kết quả nếu PydanticAI trả về run result. Runner có thể dừng
-sau tool ghi dữ liệu, nên không phải lần chạy nào cũng có response cuối bằng
-text. Lỗi provider được đánh dấu trên model, agent và root run. Đây là dữ liệu
-request/response quan sát được; không bao gồm suy nghĩ nội bộ model không trả về.
+example mới. Chưa có evaluator tự động chấm điểm kết quả.
 
 ```bash
 PYTHONPATH=src \
@@ -341,7 +355,8 @@ python scripts/smoke_e2e_langsmith.py \
   --asr-model models/gipformer1.5-68m-rnnt \
   --asr-backend gipformer \
   --llm-base-url http://127.0.0.1:8000/v1 \
-  --llm-model-name qwen3-4b
+  --llm-model-name qwen3-4b \
+  --output result/langsmith-e2e-10.jsonl
 ```
 
 #### Bỏ qua ASR, dùng label text của train
@@ -360,15 +375,16 @@ PYTHONPATH=src python scripts/smoke_e2e_langsmith.py \
   --use-reference-text \
   --llm-base-url http://127.0.0.1:8000/v1 \
   --llm-model-name qwen3-4b \
-  --dataset-name lifemate-validation300-train
+  --dataset-name lifemate-validation300-train \
+  --output result/langsmith-text-10.jsonl
 ```
 
 `--dataset-name` chọn dataset dùng chung để so sánh các lần chạy ASR và label
 text. `--experiment-name` đặt tên Experiment tùy chọn, phải là tên mới chưa sử
 dụng. Nếu bỏ qua, script tự tạo tên duy nhất từ `LANGSMITH_PROJECT`. Metadata
 `input_mode` phân biệt `gipformer` và `reference_text`; trace đọc label có tên
-`input.reference_text`. Trường `project` trong output ghi tên Experiment
-thực tế. Dùng cùng `--dataset-name` cho lệnh ASR nếu muốn so sánh
+`input.reference_text`. File JSONL và trường `project` trong output ghi tên
+Experiment thực tế. Dùng cùng `--dataset-name` cho lệnh ASR nếu muốn so sánh
 trên cùng dataset.
 
 ### 8.2. Experiment 300 mẫu với trace từng row
@@ -383,10 +399,11 @@ python scripts/smoke_e2e_langsmith.py \
   --asr-model models/gipformer1.5-68m-rnnt \
   --asr-backend gipformer \
   --llm-base-url http://127.0.0.1:8000/v1 \
-  --llm-model-name qwen3-4b
+  --llm-model-name qwen3-4b \
+  --output result/langsmith-e2e-300.jsonl
 ```
 
-Trace chi tiết và feedback từng sample nằm trên LangSmith. Không dùng
+File JSONL chỉ là summary local; trace chi tiết nằm trên LangSmith. Không dùng
 `--use-reference-text` nếu muốn chạy ASR thật trên train samples.
 
 ## 9. Chạy toàn bộ 300 mẫu

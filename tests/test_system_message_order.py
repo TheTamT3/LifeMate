@@ -41,5 +41,3 @@ def test_agent_sends_one_leading_system_message_with_history(with_history):
     finally:
         from lifemate.pydantic_agent import run_agent_coroutine
         run_agent_coroutine(client.close())
-
-
