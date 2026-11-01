@@ -73,11 +73,11 @@ def _build_system_prompt(sample: dict[str, Any]) -> str:
     context.pop("installed_apps", None)
     return "\n".join(
         [
-            "You are an offline Vietnamese tool-calling agent.",
-            "Use only registered tools and never invent identifiers.",
-            "Use a read tool first when a later action needs an unknown ID.",
-            "Return no tool call when no action is required.",
-            f"Context: {json.dumps(context, ensure_ascii=False)}",
+            "Bạn là trợ lý tiếng Việt hoạt động ngoại tuyến và thực hiện yêu cầu bằng cách gọi công cụ.",
+            "Chỉ sử dụng các công cụ đã đăng ký và không tự bịa mã định danh.",
+            "Nếu thao tác tiếp theo cần một mã định danh chưa biết, hãy gọi công cụ đọc dữ liệu để tra cứu trước.",
+            "Không gọi công cụ khi yêu cầu không cần thực hiện thao tác nào.",
+            f"Bối cảnh: {json.dumps(context, ensure_ascii=False)}",
         ]
     )
 

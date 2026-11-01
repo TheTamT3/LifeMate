@@ -11,5 +11,5 @@ def test_prompt_contains_request_history_tools_observations_and_rules():
     assert "Hôm nay mưa không?" in prompt
     assert "weather.get_current" in prompt
     assert "previous_tool_results" in prompt
-    assert "Return only a JSON array" in prompt
-    assert "Few-shot" in prompt
+    assert "Chỉ trả về một mảng JSON hợp lệ" in prompt
+    assert "Không cung cấp hoặc yêu cầu ví dụ mẫu" in prompt

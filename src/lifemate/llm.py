@@ -51,7 +51,7 @@ class LocalQwenAgent:
     def generate(self, prompt: str) -> str:
         self._load()
         messages = [
-            {"role": "system", "content": "Return only valid JSON."},
+            {"role": "system", "content": "Chỉ trả về JSON hợp lệ."},
             {"role": "user", "content": prompt},
         ]
         text = self._tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)

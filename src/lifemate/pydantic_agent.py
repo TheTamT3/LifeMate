@@ -197,7 +197,7 @@ def build_tool_definitions(deps: AgentDependencies) -> list[Any]:
         schema = _catalog_json_schema(argument_model, tool)
         description = str(tool.get("description", ""))
         if official_name not in description:
-            description = f"Official tool name: {official_name}. {description}".strip()
+            description = f"Tên công cụ chính thức: {official_name}. {description}".strip()
         definitions.append(
             Tool.from_schema(
                 invoke,
@@ -222,9 +222,9 @@ def build_agent(model: Any, deps: AgentDependencies) -> Any:
         deps_type=AgentDependencies,
         tools=build_tool_definitions(deps),
         system_prompt=(
-            "You are an offline Vietnamese tool-calling agent. Use only registered tools, "
-            "never invent identifiers, and return no action when no tool is needed. "
-            "Use a read tool first when a later action needs an unknown ID."
+            "Bạn là trợ lý tiếng Việt hoạt động ngoại tuyến và thực hiện yêu cầu bằng cách gọi công cụ. "
+            "Chỉ sử dụng các công cụ đã đăng ký, không tự bịa mã định danh và không thực hiện thao tác khi không cần gọi công cụ. "
+            "Nếu thao tác tiếp theo cần một mã định danh chưa biết, hãy gọi công cụ đọc dữ liệu để tra cứu trước."
         ),
     )
 

@@ -20,7 +20,7 @@ def build_prompt(
         for tool in tools
     ]
     payload = {
-        "task": "Interpret the Vietnamese request and call only necessary installed tools.",
+        "task": "Hiểu yêu cầu tiếng Việt và chỉ gọi các công cụ đã cài đặt cần thiết để thực hiện yêu cầu.",
         "request": transcript,
         "context": sample.get("context", {}),
         "history": sample.get("history", []),
@@ -28,11 +28,11 @@ def build_prompt(
         "previous_tool_results": observations,
         "output_format": [{"name": "app.tool", "arguments": {}}],
         "rules": [
-            "Return only a JSON array.",
-            "Use exact tool names and valid arguments.",
-            "Return [] when no tool is needed.",
-            "Do not invent IDs; query a read tool first when an ID is unknown.",
-            "No Few-shot examples are provided or expected.",
+            "Chỉ trả về một mảng JSON hợp lệ.",
+            "Dùng chính xác tên công cụ và các tham số hợp lệ.",
+            "Trả về [] khi không cần gọi công cụ nào.",
+            "Không tự bịa mã định danh; nếu chưa biết mã, hãy gọi công cụ đọc dữ liệu để tra cứu trước.",
+            "Không cung cấp hoặc yêu cầu ví dụ mẫu trong lời nhắc.",
         ],
     }
     return json.dumps(payload, ensure_ascii=False)
