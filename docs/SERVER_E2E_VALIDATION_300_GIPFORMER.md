@@ -52,6 +52,17 @@ nvidia-smi
 
 ## 3. Cài dependency
 
+Repo dùng `pydantic-ai-slim[openai]` và LangSmith để ghi trace, không dùng
+Logfire. Nếu môi trường cũ đã cài gói đầy đủ `pydantic-ai`, gỡ gói đó và
+Logfire trước khi cài lại requirements (gỡ metapackage không gỡ
+`pydantic-ai-slim`):
+
+```bash
+python -m pip uninstall -y pydantic-ai logfire logfire-api
+```
+
+Giữ `opentelemetry-api` vì PydanticAI cần thư viện này khi import.
+
 ```bash
 pip install -r requirements.txt
 python -m pip install -r requirements-gipformer.txt
