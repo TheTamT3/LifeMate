@@ -118,7 +118,7 @@ def test_tool_factory_keeps_official_name_and_validates_arguments(fake_env):
     }}
     definitions = build_tool_definitions(AgentDependencies(fake_env, {tool["name"]: tool}, 8))
     assert len(definitions) == 1
-    assert definitions[0].name != "weather.get_current"  # Python-safe internal name
+    assert definitions[0].name == "weather_get_current"  # provider-safe wire name
     assert definitions[0].description == tool["description"]
 ```
 
@@ -136,7 +136,7 @@ Support catalog object roots, primitive types, arrays, `required`, `enum`, `mini
 
 - [ ] **Step 4: Implement `AgentDependencies` and `build_tool_definitions()`.**
 
-Generate a unique Python-safe internal function/tool name for PydanticAI while retaining the catalog's dotted name in closure state. Validate args via the generated model, invoke `deps.env.call(official_name, arguments)`, and return only JSON-safe result data. Record each successful wrapper invocation in dependency state for round-policy tests.
+Generate a provider-safe wire name by replacing dots with underscores (for example, `weather.get_current` becomes `weather_get_current`) while retaining the catalog's dotted name in closure state. Reject normalized-name collisions. Validate args via the generated model, invoke `deps.env.call(official_name, arguments)`, and return only JSON-safe result data. Record each successful wrapper invocation in dependency state for round-policy tests.
 
 - [ ] **Step 5: Implement `build_agent()` with system instructions that include transcript/context at run time, only registered tools, no invented IDs and no-action behavior.**
 

@@ -109,7 +109,7 @@ def test_tool_factory_keeps_description_and_calls_official_name(monkeypatch):
     tool["kind"] = "read"
     definitions = build_tool_definitions(AgentDependencies(FakeEnv(), {tool["name"]: tool}, 8))
     assert len(definitions) == 1
-    assert definitions[0].name != tool["name"]
+    assert definitions[0].name == "calendar_create_event"
     assert tool["description"] in definitions[0].description
     assert tool["name"] in definitions[0].description
     assert definitions[0].json_schema["type"] == "object"

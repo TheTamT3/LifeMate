@@ -27,18 +27,27 @@ class _FallbackUsageLimits:
     request_limit: int
 
 
-def _safe_name(name: str, index: int) -> str:
-    value = re.sub(r"[^a-zA-Z0-9_]+", "_", name).strip("_") or "tool"
-    return f"lifemate_tool_{index}_{value}"
+def _safe_name(name: str) -> str:
+    """Convert a catalog name to the provider-safe wire name.
+
+    OpenAI-compatible tool names cannot contain dots, so keep the app prefix
+    and replace separators: ``weather.get_forecast`` becomes
+    ``weather_get_forecast``.
+    """
+
+    return re.sub(r"[^a-zA-Z0-9_]+", "_", name).strip("_") or "tool"
 
 
 def tool_name_map(tools: list[dict[str, Any]]) -> dict[str, str]:
     """Map catalog names to stable PydanticAI wire names."""
 
-    return {
-        str(tool["name"]): _safe_name(str(tool["name"]), index)
-        for index, tool in enumerate(tools)
+    mapping = {
+        str(tool["name"]): _safe_name(str(tool["name"]))
+        for tool in tools
     }
+    if len(mapping.values()) != len(set(mapping.values())):
+        raise ValueError("catalog tool names collide after provider-safe normalization")
+    return mapping
 
 
 def _annotation(spec: dict[str, Any]) -> Any:
@@ -84,7 +93,7 @@ def catalog_argument_model(tool: dict[str, Any]) -> type[BaseModel]:
             constraints["gt"] = spec["exclusiveMinimum"]
         fields[name] = (_annotation(spec), Field(**constraints))
     return create_model(
-        f"{_safe_name(str(tool.get('name', 'tool')), 0)}Arguments",
+        f"{_safe_name(str(tool.get('name', 'tool')))}Arguments",
         __config__=ConfigDict(extra="forbid"),
         **fields,
     )
@@ -171,9 +180,13 @@ def build_tool_definitions(deps: AgentDependencies) -> list[Any]:
         raise RuntimeError("PydanticAI is required to build agent tools") from exc
 
     definitions: list[Any] = []
-    for index, (official_name, tool) in enumerate(deps.tools_by_name.items()):
+    wire_names: set[str] = set()
+    for official_name, tool in deps.tools_by_name.items():
         argument_model = catalog_argument_model(tool)
-        internal_name = _safe_name(official_name, index)
+        internal_name = _safe_name(official_name)
+        if internal_name in wire_names:
+            raise ValueError(f"catalog tool name collision after normalization: {internal_name}")
+        wire_names.add(internal_name)
 
         def invoke(ctx: Any, *, _official=official_name, _tool=tool, **arguments: Any) -> Any:
             parsed = validate_catalog_arguments(_tool, arguments)

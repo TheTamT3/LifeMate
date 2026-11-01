@@ -41,6 +41,10 @@ def test_history_maps_official_tool_names_to_wire_names_and_tool_results():
         ]
     }
     mapping = tool_name_map(tools)
+    assert mapping == {
+        "alarm.list": "alarm_list",
+        "alarm.delete": "alarm_delete",
+    }
     records = _history_records(sample, mapping)
     assert records[0] == {"role": "user", "content": "Có báo thức nào không?"}
     assert records[1]["role"] == "assistant"
