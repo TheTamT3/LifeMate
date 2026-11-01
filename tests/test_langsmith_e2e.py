@@ -214,6 +214,8 @@ class FakeClient:
         self.created.append(kwargs)
 
     def update_run(self, run_id, **kwargs):
+        assert kwargs.get('trace_id') is not None, 'SDK sampling requires trace_id on updates'
+        assert kwargs.get('dotted_order'), 'Updates must retain trace hierarchy'
         self.updated.append((run_id, kwargs))
 
     def flush(self):

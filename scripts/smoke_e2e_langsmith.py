@@ -160,14 +160,16 @@ def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog
         result = runner.run_sample(sample_for_run, split=args.split, root=args.root, catalog=catalog, llm_model=traced_llm, asr=asr, max_steps=args.max_steps, seed=args.seed)
     except Exception as exc:
         error = {"id": str(sample["id"]), "run_id": root_run_id, "error": f"{type(exc).__name__}: {exc}"}
-        client.update_run(root_run_id, error=error["error"], end_time=_now())
+        client.update_run(root_run_id, trace_id=root_run_id, dotted_order=root_dotted_order,
+                          error=error["error"], end_time=_now())
         return error
     finally:
         runner._tool_env = original_tool_env
         runner.transcript = original_transcript
         runner.run_agent = original_run_agent
 
-    client.update_run(root_run_id, outputs=result, end_time=_now(), extra={"metadata": {"tool_call_count": len(result["tool_calls"])}})
+    client.update_run(root_run_id, trace_id=root_run_id, dotted_order=root_dotted_order,
+                      outputs=result, end_time=_now(), extra={"metadata": {"tool_call_count": len(result["tool_calls"])}})
     if getattr(args, 'evaluator', None) is not None:
         try:
             # Ensure the run is ingested before attaching feedback to it.
@@ -176,7 +178,8 @@ def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog
                                    args.references[str(sample['id'])], catalog)
         except Exception as exc:
             error = f'{type(exc).__name__}: {exc}'
-            client.update_run(root_run_id, error=f'Evaluation upload failed: {error}')
+            client.update_run(root_run_id, trace_id=root_run_id, dotted_order=root_dotted_order,
+                              error=f'Evaluation upload failed: {error}')
             return {'project': project, 'run_id': root_run_id, **result, 'evaluation_error': error}
     return {"project": project, "run_id": root_run_id, **result}
 
