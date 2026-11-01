@@ -18,6 +18,12 @@ from langsmith.utils import LangSmithNotFoundError
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def create_trace_client(api_key):
+    # Debug experiments must surface ingestion errors and retain every sample.
+    return Client(api_url=os.getenv('LANGSMITH_ENDPOINT', 'https://api.smith.langchain.com'),
+                  api_key=api_key, auto_batch_tracing=False, tracing_sampling_rate=1.0)
+
+
 def _now() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -114,6 +120,7 @@ def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog
 
     input_mode = 'reference_text' if args.use_reference_text else args.asr_backend
     root_run_id, root_dotted_order = _create_root_run(client, project, sample, args.split, input_mode, args.llm_model_name, args.example_ids[str(sample['id'])])
+    print(f"[LangSmith] sample={sample['id']} project={project} run_id={root_run_id}", file=sys.stderr, flush=True)
     tracer = LangSmithE2ETracer(client, project, root_run_id, root_dotted_order)
     original_tool_env = runner._tool_env
     original_transcript = runner.transcript
@@ -215,7 +222,7 @@ def main(argv: list[str] | None = None) -> None:
     asr = prepare_asr(samples, args.split, args.use_reference_text, args.asr_model)
     catalog = load_catalog(catalog_path)
     seed_everything(args.seed)
-    client = Client(api_url=os.getenv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com"), api_key=api_key)
+    client = create_trace_client(api_key)
 
     llm = create_vllm_model(VLLMConfig(args.llm_base_url, args.llm_model_name, args.max_steps))
     dataset_name = args.dataset_name or f'lifemate-{args.root.resolve().name}-{args.split}'
@@ -230,15 +237,19 @@ def main(argv: list[str] | None = None) -> None:
         references=args.references,
     )
     project = experiment.name
+    print(f'[LangSmith] dataset={dataset_name} experiment={project} experiment_id={experiment.id}',
+          file=sys.stderr, flush=True)
     from lifemate.pydantic_agent import agent_event_loop
-    with agent_event_loop() as batch_loop:
-        try:
-            rows = [_run_one_sample(sample, args=args, catalog=catalog, runner=runner, llm=llm, asr=asr, client=client, project=project) for sample in samples]
-        finally:
-            # Close the provider's HTTP pool while its owning loop is alive.
-            batch_loop.run(llm.client.close())
-    client.flush()
-    client.update_project(experiment.id, end_time=_now())
+    try:
+        with agent_event_loop() as batch_loop:
+            try:
+                rows = [_run_one_sample(sample, args=args, catalog=catalog, runner=runner, llm=llm, asr=asr, client=client, project=project) for sample in samples]
+            finally:
+                # Close the provider's HTTP pool while its owning loop is alive.
+                batch_loop.run(llm.client.close())
+    finally:
+        client.flush()
+        client.update_project(experiment.id, end_time=_now())
 
     print(json.dumps({"project": project, "count": len(rows), "rows": rows}, ensure_ascii=False, indent=2))
 

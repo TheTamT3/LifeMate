@@ -31,6 +31,18 @@ def load_smoke_module():
     return module
 
 
+def test_debug_client_sends_synchronously_and_does_not_sample(monkeypatch):
+    module = load_smoke_module()
+    captured = {}
+    def client(**kwargs):
+        captured.update(kwargs)
+        return 'client'
+    monkeypatch.setattr(module, 'Client', client)
+    assert module.create_trace_client('secret') == 'client'
+    assert captured['auto_batch_tracing'] is False
+    assert captured['tracing_sampling_rate'] == 1.0
+
+
 def test_span_times_and_dotted_order_follow_execution_even_with_clock_ties(monkeypatch):
     from datetime import datetime, timezone
     import lifemate.langsmith_e2e as tracing
