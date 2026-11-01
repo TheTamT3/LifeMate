@@ -39,9 +39,17 @@ def require_langsmith_environment() -> tuple[str, str]:
     return os.environ["LANGSMITH_API_KEY"], os.environ["LANGSMITH_PROJECT"]
 
 
-def select_samples(samples: list[dict[str, Any]], *, sample_id: str | None = None, limit: int | None = None) -> list[dict[str, Any]]:
-    if sample_id is not None and limit is not None:
-        raise ValueError("use either sample_id or limit, not both")
+def select_samples(samples: list[dict[str, Any]], *, sample_id: str | None = None, limit: int | None = None, sample_ids_file: Path | None = None) -> list[dict[str, Any]]:
+    if sum(value is not None for value in (sample_id, limit, sample_ids_file)) > 1:
+        raise ValueError("use only one of sample_id, limit or sample_ids_file")
+    if sample_ids_file is not None:
+        requested = set(sample_ids_file.read_text(encoding='utf-8-sig').split())
+        if not requested:
+            raise SystemExit("Sample ID file is empty")
+        missing = requested - {str(sample.get('id')) for sample in samples}
+        if missing:
+            raise SystemExit(f"Samples not found: {', '.join(sorted(missing))}")
+        return [sample for sample in samples if str(sample.get('id')) in requested]
     if sample_id is not None:
         selected = [sample for sample in samples if sample.get("id") == sample_id]
         if not selected:
@@ -136,6 +144,12 @@ def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog
     def traced_run_agent(agent, deps, prompt, **kwargs):
         def invoke():
             result = original_run_agent(agent, deps, prompt, **kwargs)
+            if deps.argument_normalizations:
+                tracer.trace(
+                    "agent.argument_normalizations", "chain",
+                    {"normalizations": deps.argument_normalizations},
+                    lambda: {"count": len(deps.argument_normalizations)},
+                )
             if getattr(deps, 'error', None):
                 raise RuntimeError(deps.error)
             return result
@@ -191,6 +205,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--split", choices=["train", "public_test", "private_test"], default="train")
     selector = parser.add_mutually_exclusive_group(required=True)
     selector.add_argument("--sample-id")
+    selector.add_argument("--sample-ids-file", type=Path, help="file containing sample IDs separated by whitespace")
     selector.add_argument("--limit", type=int, help="number of sequential samples to trace")
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--asr-model", type=Path)
@@ -217,7 +232,7 @@ def main(argv: list[str] | None = None) -> None:
     from lifemate.vllm import VLLMConfig, create_vllm_model
 
     data_path, catalog_path = split_paths(args.root, args.split)
-    samples = select_samples(read_jsonl(data_path), sample_id=args.sample_id, limit=args.limit)
+    samples = select_samples(read_jsonl(data_path), sample_id=args.sample_id, limit=args.limit, sample_ids_file=args.sample_ids_file)
     from lifemate.agent_evaluation import TrainEvaluator
     args.evaluator = TrainEvaluator(args.root) if args.split == 'train' else None
     args.references = ({str(sample['id']): args.evaluator.reference(sample) for sample in samples}

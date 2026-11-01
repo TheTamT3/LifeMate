@@ -6,6 +6,7 @@ import json
 import inspect
 import re
 import asyncio
+from copy import deepcopy
 from contextlib import contextmanager
 from contextvars import ContextVar, copy_context
 from dataclasses import dataclass, field, replace
@@ -65,6 +66,7 @@ class AgentDependencies:
     seed: int = 0
     calls: list[dict[str, Any]] = field(default_factory=list)
     round_calls: list[list[str]] = field(default_factory=list)
+    argument_normalizations: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -261,6 +263,50 @@ def build_tool_definitions(deps: AgentDependencies) -> list[Any]:
     return definitions
 
 
+def _normalizing_model(model: Any, deps: AgentDependencies) -> Any:
+    """Repair object payloads only for closed, parameterless catalog tools.
+
+    Wrap outside provider tracing so the original response remains observable.
+    Copy responses/parts rather than altering the provider's response in place.
+    LifeMate uses non-streaming requests through Agent.iter.
+    """
+    from pydantic_ai.models.wrapper import WrapperModel
+
+    eligible = {}
+    for name, tool in deps.tools_by_name.items():
+        schema = _catalog_json_schema(catalog_argument_model(tool), tool)
+        if (schema.get("type") == "object" and schema.get("properties") == {}
+                and schema.get("additionalProperties") is False
+                and not schema.get("required") and not schema.get("x-one-of")):
+            eligible[_safe_name(name)] = name
+
+    class NormalizingModel(WrapperModel):
+        async def request(self, *args: Any, **kwargs: Any) -> Any:
+            response = await self.wrapped.request(*args, **kwargs)
+            parts = []
+            for part in response.parts:
+                if (getattr(part, "part_kind", None) == "tool-call"
+                        and part.tool_name in eligible):
+                    original = part.args
+                    try:
+                        parsed = json.loads(original) if isinstance(original, str) else original
+                    except (ValueError, TypeError):
+                        parsed = None
+                    if isinstance(parsed, dict) and parsed:
+                        deps.argument_normalizations.append({
+                            "tool": eligible[part.tool_name],
+                            "tool_call_id": part.tool_call_id,
+                            "original_arguments": deepcopy(original),
+                            "normalized_arguments": {},
+                            "normalization_applied": True,
+                        })
+                        part = replace(part, args={})
+                parts.append(part)
+            return replace(response, parts=parts)
+
+    return NormalizingModel(model)
+
+
 def build_agent(model: Any, deps: AgentDependencies) -> Any:
     try:
         from pydantic_ai import Agent
@@ -268,7 +314,7 @@ def build_agent(model: Any, deps: AgentDependencies) -> Any:
         raise RuntimeError("PydanticAI is required to build the agent") from exc
 
     return Agent(
-        model=model,
+        model=_normalizing_model(model, deps),
         deps_type=AgentDependencies,
         tools=build_tool_definitions(deps),
         history_processors=[without_thinking],

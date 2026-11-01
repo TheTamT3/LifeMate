@@ -59,11 +59,14 @@ def run_sample(
         instructions=_build_system_prompt(sample),
     )
 
-    return {
+    result = {
         "id": str(sample["id"]),
         "tool_calls": env.get_tool_calls(),
         "state_hash": env.get_state_hash(),
     }
+    if deps.argument_normalizations:
+        result["argument_normalizations"] = deps.argument_normalizations
+    return result
 
 
 def _build_system_prompt(sample: dict[str, Any]) -> str:

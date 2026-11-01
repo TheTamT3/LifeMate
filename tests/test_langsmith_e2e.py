@@ -329,3 +329,22 @@ def test_experiment_selects_requested_number_of_samples():
         "train_0001",
         "train_0002",
     ]
+
+
+def test_experiment_selects_only_ids_from_file(tmp_path):
+    module = load_smoke_module()
+    ids = tmp_path / 'ids.txt'
+    ids.write_text('train_0002\n\ntrain_0000\ntrain_0002\n', encoding='utf-8')
+    samples = [{'id': f'train_{index:04d}'} for index in range(4)]
+    assert module.select_samples(samples, sample_ids_file=ids) == [samples[0], samples[2]]
+
+
+def test_experiment_rejects_unknown_or_empty_id_file(tmp_path):
+    module = load_smoke_module()
+    ids = tmp_path / 'ids.txt'
+    ids.write_text('train_missing\n', encoding='utf-8')
+    with pytest.raises(SystemExit, match='train_missing'):
+        module.select_samples([{'id': 'train_0000'}], sample_ids_file=ids)
+    ids.write_text('\n', encoding='utf-8')
+    with pytest.raises(SystemExit, match='empty'):
+        module.select_samples([{'id': 'train_0000'}], sample_ids_file=ids)
