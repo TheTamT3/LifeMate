@@ -9,10 +9,11 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from uuid import uuid4
+from uuid import uuid4, uuid5, NAMESPACE_URL
 
 from dotenv import load_dotenv
 from langsmith import Client
+from langsmith.utils import LangSmithNotFoundError
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -48,7 +49,47 @@ def select_samples(samples: list[dict[str, Any]], *, sample_id: str | None = Non
     return selected
 
 
-def _create_root_run(client: Client, project: str, sample: dict[str, Any], split: str, asr_backend: str, llm_model_name: str) -> tuple[str, str]:
+def prepare_asr(samples, split, use_reference_text, model_path):
+    if use_reference_text:
+        if split != 'train':
+            raise ValueError('--use-reference-text requires the train split')
+        for sample in samples:
+            if not isinstance(sample.get('audio_text'), str) or not sample['audio_text'].strip():
+                raise ValueError(f"Sample {sample.get('id')} requires non-empty audio_text")
+        return None
+    if model_path is None:
+        raise ValueError('--asr-model is required unless --use-reference-text is set')
+    from lifemate.asr import GipformerASR
+    return GipformerASR(model_path, device='cuda')
+
+
+def prepare_experiment(client, samples, dataset_name, experiment_name, metadata):
+    try:
+        dataset = client.read_dataset(dataset_name=dataset_name)
+    except LangSmithNotFoundError:
+        dataset = client.create_dataset(dataset_name=dataset_name)
+    example_ids = {}
+    for sample in samples:
+        # Content-addressed IDs reuse unchanged examples, without overwriting labels.
+        identity = json.dumps(sample, sort_keys=True, ensure_ascii=False)
+        example_id = uuid5(NAMESPACE_URL, f'{dataset.id}:{identity}')
+        try:
+            client.read_example(example_id)
+        except LangSmithNotFoundError:
+            client.create_example(
+                dataset_id=dataset.id, example_id=example_id,
+                inputs={k: v for k, v in sample.items() if k not in {'tool_calls', 'state_hash'}},
+                outputs={k: sample[k] for k in ('tool_calls', 'state_hash') if k in sample},
+                metadata={'sample_id': sample['id']},
+            )
+        example_ids[str(sample['id'])] = example_id
+    project = client.create_project(
+        project_name=experiment_name, reference_dataset_id=dataset.id, metadata=metadata,
+    )
+    return project, example_ids
+
+
+def _create_root_run(client: Client, project: str, sample: dict[str, Any], split: str, asr_backend: str, llm_model_name: str, reference_example_id=None) -> tuple[str, str]:
     root_run_id = str(uuid4())
     root_dotted_order = _dotted_order(root_run_id)
     client.create_run(
@@ -56,6 +97,7 @@ def _create_root_run(client: Client, project: str, sample: dict[str, Any], split
         run_type="chain",
         inputs={"sample_id": sample["id"], "audio": sample.get("audio")},
         project_name=project,
+        reference_example_id=reference_example_id,
         id=root_run_id,
         run_id=root_run_id,
         trace_id=root_run_id,
@@ -68,7 +110,8 @@ def _create_root_run(client: Client, project: str, sample: dict[str, Any], split
 def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog: dict[str, dict[str, Any]], runner: Any, llm: Any, asr: Any, client: Client, project: str) -> dict[str, Any]:
     from lifemate.langsmith_e2e import LangSmithE2ETracer, TracingToolEnv
 
-    root_run_id, root_dotted_order = _create_root_run(client, project, sample, args.split, args.asr_backend, args.llm_model_name)
+    input_mode = 'reference_text' if args.use_reference_text else args.asr_backend
+    root_run_id, root_dotted_order = _create_root_run(client, project, sample, args.split, input_mode, args.llm_model_name, args.example_ids[str(sample['id'])])
     tracer = LangSmithE2ETracer(client, project, root_run_id, root_dotted_order)
     original_tool_env = runner._tool_env
     original_transcript = runner.transcript
@@ -78,7 +121,8 @@ def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog
         return TracingToolEnv(original_tool_env(split, sample_id, root), tracer)
 
     def traced_transcript(sample_data, asr_model):
-        return tracer.trace("asr.gipformer.transcribe", "chain", {"audio": sample_data.get("audio"), "backend": args.asr_backend}, lambda: original_transcript(sample_data, asr_model))
+        name = 'input.reference_text' if args.use_reference_text else 'asr.gipformer.transcribe'
+        return tracer.trace(name, "chain", {"audio": sample_data.get("audio"), "backend": input_mode}, lambda: original_transcript(sample_data, asr_model))
 
     def traced_run_agent(agent, deps, prompt, **kwargs):
         return tracer.trace(
@@ -119,7 +163,9 @@ def main(argv: list[str] | None = None) -> None:
     selector.add_argument("--sample-id")
     selector.add_argument("--limit", type=int, help="number of sequential samples to trace")
     parser.add_argument("--model", type=Path, required=True)
-    parser.add_argument("--asr-model", type=Path, required=True)
+    parser.add_argument("--asr-model", type=Path)
+    parser.add_argument('--dataset-name', help='LangSmith dataset name; defaults to root name and split')
+    parser.add_argument('--experiment-name', help='Unique experiment name; defaults to project plus UUID')
     parser.add_argument("--asr-backend", choices=["gipformer"], default="gipformer")
     parser.add_argument("--llm-base-url", default="http://127.0.0.1:8000/v1")
     parser.add_argument("--llm-model-name", default="qwen3-4b")
@@ -137,22 +183,29 @@ def main(argv: list[str] | None = None) -> None:
 
     sys.path.insert(0, str(ROOT / "src"))
     import lifemate.runner as runner
-    from lifemate.asr import GipformerASR
-    from lifemate.config import RuntimeConfig, seed_everything
+    from lifemate.config import seed_everything
     from lifemate.data import load_catalog, read_jsonl, split_paths
     from lifemate.vllm import VLLMConfig, create_vllm_model
 
     data_path, catalog_path = split_paths(args.root, args.split)
     samples = select_samples(read_jsonl(data_path), sample_id=args.sample_id, limit=args.limit)
+    asr = prepare_asr(samples, args.split, args.use_reference_text, args.asr_model)
     catalog = load_catalog(catalog_path)
     seed_everything(args.seed)
     client = Client(api_url=os.getenv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com"), api_key=api_key)
 
-    config = RuntimeConfig(args.model, args.asr_model, max_steps=args.max_steps, llm_base_url=args.llm_base_url, llm_model_name=args.llm_model_name)
-    llm = create_vllm_model(VLLMConfig(config.llm_base_url, config.llm_model_name, config.max_steps))
-    asr = GipformerASR(config.asr_model_path, device="cuda")
+    llm = create_vllm_model(VLLMConfig(args.llm_base_url, args.llm_model_name, args.max_steps))
+    dataset_name = args.dataset_name or f'lifemate-{args.root.resolve().name}-{args.split}'
+    experiment_name = args.experiment_name or f'{project}-{uuid4().hex[:12]}'
+    experiment, args.example_ids = prepare_experiment(
+        client, samples, dataset_name, experiment_name,
+        {'input_mode': 'reference_text' if args.use_reference_text else 'gipformer',
+         'llm_model': args.llm_model_name, 'seed': args.seed, 'max_steps': args.max_steps},
+    )
+    project = experiment.name
     rows = [_run_one_sample(sample, args=args, catalog=catalog, runner=runner, llm=llm, asr=asr, client=client, project=project) for sample in samples]
     client.flush()
+    client.update_project(experiment.id, end_time=_now())
 
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

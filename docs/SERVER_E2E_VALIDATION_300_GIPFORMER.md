@@ -267,6 +267,12 @@ Lệnh `baseline.py` phía trên chỉ ghi JSONL local; không tự gửi trace.
 Mỗi sample tạo một root trace riêng trên LangSmith. Model và ASR chỉ được load
 một lần để tránh tốn thời gian khởi tạo lặp lại:
 
+Script tạo hoặc tái sử dụng dataset và tạo một Experiment mới cho mỗi lần chạy.
+Mỗi root trace được liên kết với một dataset example qua `reference_example_id`.
+Mở dataset tương ứng trong **Datasets & Experiments** để xem các lần chạy và
+trace từng row. Example không đổi được tái sử dụng; thay đổi nội dung sample tạo
+example mới. Chưa có evaluator tự động chấm điểm kết quả.
+
 ```bash
 PYTHONPATH=src \
 python scripts/smoke_e2e_langsmith.py \
@@ -280,6 +286,34 @@ python scripts/smoke_e2e_langsmith.py \
   --llm-model-name qwen3-4b \
   --output result/langsmith-e2e-10.jsonl
 ```
+
+#### Bỏ qua ASR, dùng label text của train
+
+Thêm `--use-reference-text` để dùng `audio_text` thay cho nhận dạng âm thanh.
+Chế độ này không khởi tạo model Gipformer và không cần truyền `--asr-model`;
+LLM và ToolEnv vẫn chạy thật. Script chỉ chấp nhận split `train` và kiểm tra
+mọi sample có `audio_text` không rỗng trước khi gửi dữ liệu lên LangSmith.
+
+```bash
+PYTHONPATH=src python scripts/smoke_e2e_langsmith.py \
+  --root data/validation_300 \
+  --split train \
+  --limit 10 \
+  --model models/qwen3-4b \
+  --use-reference-text \
+  --llm-base-url http://127.0.0.1:8000/v1 \
+  --llm-model-name qwen3-4b \
+  --dataset-name lifemate-validation300-train \
+  --output result/langsmith-text-10.jsonl
+```
+
+`--dataset-name` chọn dataset dùng chung để so sánh các lần chạy ASR và label
+text. `--experiment-name` đặt tên Experiment tùy chọn, phải là tên mới chưa sử
+dụng. Nếu bỏ qua, script tự tạo tên duy nhất từ `LANGSMITH_PROJECT`. Metadata
+`input_mode` phân biệt `gipformer` và `reference_text`; trace đọc label có tên
+`input.reference_text`. File JSONL và trường `project` trong output ghi tên
+Experiment thực tế. Dùng cùng `--dataset-name` cho lệnh ASR nếu muốn so sánh
+trên cùng dataset.
 
 ### 8.2. Experiment 300 mẫu với trace từng row
 
