@@ -282,7 +282,41 @@ Script tạo hoặc tái sử dụng dataset và tạo một Experiment mới ch
 Mỗi root trace được liên kết với một dataset example qua `reference_example_id`.
 Mở dataset tương ứng trong **Datasets & Experiments** để xem các lần chạy và
 trace từng row. Example không đổi được tái sử dụng; thay đổi nội dung sample tạo
-example mới. Chưa có evaluator tự động chấm điểm kết quả.
+example mới. Reference outputs lấy từ `label.tool_calls` và gold state hash;
+`label` không nằm trong inputs gửi cho agent.
+
+Mỗi sample train chạy thành công được gắn hai feedback score vào root run:
+
+- `tool_call_accuracy`: 1 khi toàn bộ call khớp một-một với gold (không xét
+  thứ tự), không thừa/thiếu call, đúng schema và arguments; trường fuzzy dùng
+  token-F1 > 0.6. Đây là metric local dạng đúng/sai, không phải F1 leaderboard.
+- `state_hash_match`: 1 khi hash thực tế khớp gold. Gold được dựng bằng cách
+  thay state của các app trong `label.final_state` vào bản sao state ban đầu,
+  rồi gọi `zaic_tools.utils.state_hash`; không tạo thêm ToolEnv hay sửa file state.
+
+Điểm 0 biểu thị không khớp. Sample lỗi inference được đánh dấu lỗi, không giả
+lập điểm. Lỗi gửi feedback được ghi riêng là `evaluation_error`. Các split
+không có label chỉ ghi trace. Kết quả được gửi lên LangSmith, không ghi JSONL
+local trong script này. Thiếu label train sẽ báo lỗi trước khi chạy.
+
+Trong mỗi row, trace có cấu trúc:
+
+```text
+lifemate.e2e.sample
+├── asr.gipformer.transcribe / input.reference_text
+└── agent.pydantic_ai
+    ├── llm.<model>       # request/response, messages, tool schemas, usage
+    ├── tool.<name>       # arguments, output hoặc lỗi
+    ├── llm.<model>       # lượt tiếp theo kèm tool results trong messages
+    └── ...
+```
+
+Mỗi lượt gọi model không streaming được ghi riêng với thời gian bắt đầu/kết
+thúc và token usage do provider trả về. Agent span ghi prompt, instructions,
+history và message kết quả nếu PydanticAI trả về run result. Runner có thể dừng
+sau tool ghi dữ liệu, nên không phải lần chạy nào cũng có response cuối bằng
+text. Lỗi provider được đánh dấu trên model, agent và root run. Đây là dữ liệu
+request/response quan sát được; không bao gồm suy nghĩ nội bộ model không trả về.
 
 ```bash
 PYTHONPATH=src \
@@ -294,8 +328,7 @@ python scripts/smoke_e2e_langsmith.py \
   --asr-model models/gipformer1.5-68m-rnnt \
   --asr-backend gipformer \
   --llm-base-url http://127.0.0.1:8000/v1 \
-  --llm-model-name qwen3-4b \
-  --output result/langsmith-e2e-10.jsonl
+  --llm-model-name qwen3-4b
 ```
 
 #### Bỏ qua ASR, dùng label text của train
@@ -314,16 +347,15 @@ PYTHONPATH=src python scripts/smoke_e2e_langsmith.py \
   --use-reference-text \
   --llm-base-url http://127.0.0.1:8000/v1 \
   --llm-model-name qwen3-4b \
-  --dataset-name lifemate-validation300-train \
-  --output result/langsmith-text-10.jsonl
+  --dataset-name lifemate-validation300-train
 ```
 
 `--dataset-name` chọn dataset dùng chung để so sánh các lần chạy ASR và label
 text. `--experiment-name` đặt tên Experiment tùy chọn, phải là tên mới chưa sử
 dụng. Nếu bỏ qua, script tự tạo tên duy nhất từ `LANGSMITH_PROJECT`. Metadata
 `input_mode` phân biệt `gipformer` và `reference_text`; trace đọc label có tên
-`input.reference_text`. File JSONL và trường `project` trong output ghi tên
-Experiment thực tế. Dùng cùng `--dataset-name` cho lệnh ASR nếu muốn so sánh
+`input.reference_text`. Trường `project` trong output ghi tên Experiment
+thực tế. Dùng cùng `--dataset-name` cho lệnh ASR nếu muốn so sánh
 trên cùng dataset.
 
 ### 8.2. Experiment 300 mẫu với trace từng row
@@ -338,11 +370,10 @@ python scripts/smoke_e2e_langsmith.py \
   --asr-model models/gipformer1.5-68m-rnnt \
   --asr-backend gipformer \
   --llm-base-url http://127.0.0.1:8000/v1 \
-  --llm-model-name qwen3-4b \
-  --output result/langsmith-e2e-300.jsonl
+  --llm-model-name qwen3-4b
 ```
 
-File JSONL chỉ là summary local; trace chi tiết nằm trên LangSmith. Không dùng
+Trace chi tiết và feedback từng sample nằm trên LangSmith. Không dùng
 `--use-reference-text` nếu muốn chạy ASR thật trên train samples.
 
 ## 9. Chạy toàn bộ 300 mẫu

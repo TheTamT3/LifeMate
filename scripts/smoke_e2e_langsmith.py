@@ -63,7 +63,7 @@ def prepare_asr(samples, split, use_reference_text, model_path):
     return GipformerASR(model_path, device='cuda')
 
 
-def prepare_experiment(client, samples, dataset_name, experiment_name, metadata):
+def prepare_experiment(client, samples, dataset_name, experiment_name, metadata, references=None):
     try:
         dataset = client.read_dataset(dataset_name=dataset_name)
     except LangSmithNotFoundError:
@@ -72,14 +72,14 @@ def prepare_experiment(client, samples, dataset_name, experiment_name, metadata)
     for sample in samples:
         # Content-addressed IDs reuse unchanged examples, without overwriting labels.
         identity = json.dumps(sample, sort_keys=True, ensure_ascii=False)
-        example_id = uuid5(NAMESPACE_URL, f'{dataset.id}:{identity}')
+        example_id = uuid5(NAMESPACE_URL, f'{dataset.id}:reference-v2:{identity}')
         try:
             client.read_example(example_id)
         except LangSmithNotFoundError:
             client.create_example(
                 dataset_id=dataset.id, example_id=example_id,
-                inputs={k: v for k, v in sample.items() if k not in {'tool_calls', 'state_hash'}},
-                outputs={k: sample[k] for k in ('tool_calls', 'state_hash') if k in sample},
+                inputs={k: v for k, v in sample.items() if k not in {'label', 'tool_calls', 'state_hash'}},
+                outputs=(references or {}).get(str(sample['id']), {}),
                 metadata={'sample_id': sample['id']},
             )
         example_ids[str(sample['id'])] = example_id
@@ -108,7 +108,7 @@ def _create_root_run(client: Client, project: str, sample: dict[str, Any], split
 
 
 def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog: dict[str, dict[str, Any]], runner: Any, llm: Any, asr: Any, client: Client, project: str) -> dict[str, Any]:
-    from lifemate.langsmith_e2e import LangSmithE2ETracer, TracingToolEnv
+    from lifemate.langsmith_e2e import LangSmithE2ETracer, TracingToolEnv, tracing_model, _safe_output
 
     input_mode = 'reference_text' if args.use_reference_text else args.asr_backend
     root_run_id, root_dotted_order = _create_root_run(client, project, sample, args.split, input_mode, args.llm_model_name, args.example_ids[str(sample['id'])])
@@ -125,11 +125,17 @@ def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog
         return tracer.trace(name, "chain", {"audio": sample_data.get("audio"), "backend": input_mode}, lambda: original_transcript(sample_data, asr_model))
 
     def traced_run_agent(agent, deps, prompt, **kwargs):
+        def invoke():
+            result = original_run_agent(agent, deps, prompt, **kwargs)
+            if getattr(deps, 'error', None):
+                raise RuntimeError(deps.error)
+            return result
         return tracer.trace(
             "agent.pydantic_ai",
             "chain",
-            {"prompt": prompt, "history_count": len(kwargs.get("message_history") or [])},
-            lambda: original_run_agent(agent, deps, prompt, **kwargs),
+            {"prompt": prompt, "message_history": _safe_output(kwargs.get("message_history") or []),
+             'instructions': kwargs.get('instructions')},
+            invoke,
             metadata={"model": args.llm_model_name},
         )
 
@@ -137,10 +143,12 @@ def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog
     runner.transcript = traced_transcript
     runner.run_agent = traced_run_agent
     sample_for_run = dict(sample)
+    sample_for_run.pop('label', None)
     if not args.use_reference_text:
         sample_for_run.pop("audio_text", None)
     try:
-        result = runner.run_sample(sample_for_run, split=args.split, root=args.root, catalog=catalog, llm_model=llm, asr=asr, max_steps=args.max_steps, seed=args.seed)
+        traced_llm = tracing_model(llm, tracer) if llm is not None else None
+        result = runner.run_sample(sample_for_run, split=args.split, root=args.root, catalog=catalog, llm_model=traced_llm, asr=asr, max_steps=args.max_steps, seed=args.seed)
     except Exception as exc:
         error = {"id": str(sample["id"]), "run_id": root_run_id, "error": f"{type(exc).__name__}: {exc}"}
         client.update_run(root_run_id, error=error["error"], end_time=_now())
@@ -151,6 +159,16 @@ def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog
         runner.run_agent = original_run_agent
 
     client.update_run(root_run_id, outputs=result, end_time=_now(), extra={"metadata": {"tool_call_count": len(result["tool_calls"])}})
+    if getattr(args, 'evaluator', None) is not None:
+        try:
+            # Ensure the run is ingested before attaching feedback to it.
+            client.flush()
+            args.evaluator.publish(client, root_run_id, sample, result,
+                                   args.references[str(sample['id'])], catalog)
+        except Exception as exc:
+            error = f'{type(exc).__name__}: {exc}'
+            client.update_run(root_run_id, error=f'Evaluation upload failed: {error}')
+            return {'project': project, 'run_id': root_run_id, **result, 'evaluation_error': error}
     return {"project": project, "run_id": root_run_id, **result}
 
 
@@ -172,7 +190,6 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--max-steps", type=int, default=8)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--project", default=None)
-    parser.add_argument("--output", type=Path, help="optional local JSONL summary")
     parser.add_argument("--use-reference-text", action="store_true", help="use train audio_text instead of running ASR")
     args = parser.parse_args(argv)
 
@@ -189,6 +206,10 @@ def main(argv: list[str] | None = None) -> None:
 
     data_path, catalog_path = split_paths(args.root, args.split)
     samples = select_samples(read_jsonl(data_path), sample_id=args.sample_id, limit=args.limit)
+    from lifemate.agent_evaluation import TrainEvaluator
+    args.evaluator = TrainEvaluator(args.root) if args.split == 'train' else None
+    args.references = ({str(sample['id']): args.evaluator.reference(sample) for sample in samples}
+                       if args.evaluator else {})
     asr = prepare_asr(samples, args.split, args.use_reference_text, args.asr_model)
     catalog = load_catalog(catalog_path)
     seed_everything(args.seed)
@@ -201,17 +222,13 @@ def main(argv: list[str] | None = None) -> None:
         client, samples, dataset_name, experiment_name,
         {'input_mode': 'reference_text' if args.use_reference_text else 'gipformer',
          'llm_model': args.llm_model_name, 'seed': args.seed, 'max_steps': args.max_steps},
+        references=args.references,
     )
     project = experiment.name
     rows = [_run_one_sample(sample, args=args, catalog=catalog, runner=runner, llm=llm, asr=asr, client=client, project=project) for sample in samples]
     client.flush()
     client.update_project(experiment.id, end_time=_now())
 
-    if args.output:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        with args.output.open("w", encoding="utf-8") as handle:
-            for row in rows:
-                handle.write(json.dumps(row, ensure_ascii=False) + "\n")
     print(json.dumps({"project": project, "count": len(rows), "rows": rows}, ensure_ascii=False, indent=2))
 
 

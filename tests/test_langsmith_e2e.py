@@ -14,6 +14,68 @@ def load_smoke_module():
     return module
 
 
+def test_nested_traces_use_agent_parent_and_restore_context():
+    from lifemate.langsmith_e2e import LangSmithE2ETracer
+    client = FakeClient()
+    tracer = LangSmithE2ETracer(client, 'project', 'root', 'root-order')
+    tracer.trace('agent', 'chain', {}, lambda: tracer.trace('tool', 'tool', {}, lambda: 'ok'))
+    agent, tool = client.created
+    assert tool['parent_run_id'] == agent['id']
+    assert tool['dotted_order'].startswith(agent['dotted_order'] + '.')
+    tracer.trace('next', 'chain', {}, lambda: None)
+    assert client.created[-1]['parent_run_id'] == 'root'
+
+
+def test_async_model_trace_records_messages_usage_and_errors():
+    import asyncio
+    from dataclasses import dataclass
+    from lifemate.langsmith_e2e import LangSmithE2ETracer
+    @dataclass
+    class Response:
+        parts: list
+        usage: dict
+    client = FakeClient()
+    tracer = LangSmithE2ETracer(client, 'project', 'root', 'root-order')
+    response = Response([{'text': 'hello'}], {'input_tokens': 4, 'output_tokens': 2})
+    async def request():
+        return response
+    assert asyncio.run(tracer.trace_model('qwen', {'messages': []}, request)) is response
+    payload = client.updated[-1][1]
+    assert payload['outputs']['response']['parts'] == [{'text': 'hello'}]
+    assert payload['outputs']['usage_metadata']['total_tokens'] == 6
+    async def broken():
+        raise RuntimeError('provider failed')
+    with pytest.raises(RuntimeError, match='provider failed'):
+        asyncio.run(tracer.trace_model('qwen', {}, broken))
+    assert 'provider failed' in client.updated[-1][1]['error']
+
+
+def test_model_wrapper_forwards_requests_and_records_each_turn(monkeypatch):
+    import asyncio
+    import sys
+    from types import SimpleNamespace
+    from lifemate.langsmith_e2e import LangSmithE2ETracer, tracing_model
+    class Wrapper:
+        def __init__(self, wrapped):
+            self.wrapped = wrapped
+            self.model_name = wrapped.model_name
+    monkeypatch.setitem(sys.modules, 'pydantic_ai.models.wrapper', SimpleNamespace(WrapperModel=Wrapper))
+    class Model:
+        model_name = 'qwen'
+        async def request(self, messages, settings, parameters):
+            assert settings == {'temperature': 0}
+            return {'messages_seen': len(messages)}
+    client = FakeClient()
+    tracer = LangSmithE2ETracer(client, 'project', 'root', 'root-order')
+    model = tracing_model(Model(), tracer)
+    for count in (1, 3):
+        messages = [{'content': str(i)} for i in range(count)]
+        result = asyncio.run(model.request(messages, {'temperature': 0}, {}))
+        assert result == {'messages_seen': count}
+        assert client.created[-1]['inputs']['messages'] == messages
+    assert len(client.created) == 2
+
+
 def test_reference_mode_skips_asr_and_requires_train_text():
     module = load_smoke_module()
     assert module.prepare_asr([{'id': 'a', 'audio_text': 'hello'}], 'train', True, None) is None
@@ -40,10 +102,13 @@ def test_experiment_links_dataset_examples_and_root_run():
             self.project = kwargs
             return SimpleNamespace(id='experiment', name='test-run')
     client = Client()
-    project, examples = module.prepare_experiment(client, [{'id': 'a', 'audio_text': 'hello'}],
-        'dataset-name', 'test-run', {'input_mode': 'reference_text'})
+    project, examples = module.prepare_experiment(client, [{'id': 'a', 'audio_text': 'hello', 'label': {'tool_calls': []}}],
+        'dataset-name', 'test-run', {'input_mode': 'reference_text'},
+        references={'a': {'tool_calls': [], 'state_hash': 'gold'}})
     assert client.project['reference_dataset_id'] == 'dataset'
     assert client.example['inputs']['audio_text'] == 'hello'
+    assert 'label' not in client.example['inputs']
+    assert client.example['outputs'] == {'tool_calls': [], 'state_hash': 'gold'}
     assert examples['a'] == client.example['example_id']
     module._create_root_run(client, project.name, {'id': 'a'}, 'train', 'reference_text', 'qwen', examples['a'])
     assert client.created[0]['reference_example_id'] == examples['a']
@@ -75,6 +140,7 @@ def test_reference_run_uses_text_and_restores_runner(tmp_path):
         return None
     runner = SimpleNamespace(_tool_env=lambda *a: None, transcript=transcript, run_agent=run_agent)
     def run_sample(sample, **kwargs):
+        assert 'label' not in sample
         assert kwargs['asr'] is None
         assert runner.transcript(sample, kwargs['asr']) == 'label text'
         return {'id': 'a', 'tool_calls': [], 'state_hash': 'hash'}
@@ -82,7 +148,7 @@ def test_reference_run_uses_text_and_restores_runner(tmp_path):
     args = SimpleNamespace(split='train', asr_backend='gipformer', llm_model_name='qwen',
         use_reference_text=True, example_ids={'a': 'example'}, root=tmp_path, max_steps=8, seed=0)
     client = FakeClient()
-    result = module._run_one_sample({'id': 'a', 'audio_text': 'label text'}, args=args,
+    result = module._run_one_sample({'id': 'a', 'audio_text': 'label text', 'label': {'tool_calls': []}}, args=args,
         catalog={}, runner=runner, llm=None, asr=None, client=client, project='experiment')
     assert result['state_hash'] == 'hash'
     assert client.created[1]['name'] == 'input.reference_text'
