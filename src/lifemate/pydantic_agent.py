@@ -267,7 +267,9 @@ def build_agent(model: Any, deps: AgentDependencies) -> Any:
         deps_type=AgentDependencies,
         tools=build_tool_definitions(deps),
         history_processors=[without_thinking],
-        system_prompt=(
+        # Instructions are merged with per-sample instructions into one leading
+        # system message, including when a conversation history is supplied.
+        instructions=(
             "Bạn là trợ lý tiếng Việt hoạt động ngoại tuyến và thực hiện yêu cầu bằng cách gọi công cụ. "
             "Chỉ sử dụng các công cụ đã đăng ký, không tự bịa mã định danh và không thực hiện thao tác khi không cần gọi công cụ. "
             "Nếu thao tác tiếp theo cần một mã định danh chưa biết, hãy gọi công cụ đọc dữ liệu để tra cứu trước."
