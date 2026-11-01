@@ -243,6 +243,11 @@ def build_tool_definitions(deps: AgentDependencies) -> list[Any]:
         description = str(tool.get("description", ""))
         if official_name not in description:
             description = f"Tên công cụ chính thức: {official_name}. {description}".strip()
+        if not schema.get("properties"):
+            description += (
+                " Công cụ này không nhận tham số. Luôn gọi với arguments {}."
+                " Không truyền bất kỳ trường nào."
+            )
         definitions.append(
             Tool.from_schema(
                 invoke,

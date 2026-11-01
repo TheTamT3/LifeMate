@@ -117,6 +117,38 @@ def test_tool_factory_keeps_description_and_calls_official_name(monkeypatch):
     assert calls == [(tool["name"], {"title": "x"})]
 
 
+@pytest.mark.parametrize("parameters", [None, {}, {"type": "object", "properties": {}}])
+def test_parameterless_tool_description_requires_empty_arguments(monkeypatch, parameters):
+    class FakeTool:
+        @classmethod
+        def from_schema(cls, function, **kwargs):
+            return types.SimpleNamespace(function=function, **kwargs)
+
+    monkeypatch.setitem(sys.modules, "pydantic_ai", types.SimpleNamespace(Tool=FakeTool))
+    tool = {"name": "ewallet.get_balance", "description": "Số dư ví", "parameters": parameters}
+    definition = build_tool_definitions(AgentDependencies(None, {tool["name"]: tool}, 8))[0]
+    assert tool["description"] in definition.description
+    assert 'Luôn gọi với arguments {}' in definition.description
+    assert 'Không truyền bất kỳ trường nào' in definition.description
+    assert definition.json_schema["additionalProperties"] is False
+    assert validate_catalog_arguments(tool, {}) == {}
+    with pytest.raises(ValidationError):
+        validate_catalog_arguments(tool, {"amount": "0"})
+
+
+def test_optional_parameter_tool_does_not_require_empty_arguments(monkeypatch):
+    class FakeTool:
+        @classmethod
+        def from_schema(cls, function, **kwargs):
+            return types.SimpleNamespace(function=function, **kwargs)
+
+    monkeypatch.setitem(sys.modules, "pydantic_ai", types.SimpleNamespace(Tool=FakeTool))
+    tool = _tool(type="object", properties={"query": {"type": "string"}}, required=[])
+    definition = build_tool_definitions(AgentDependencies(None, {tool["name"]: tool}, 8))[0]
+    assert 'Luôn gọi với arguments {}' not in definition.description
+    assert validate_catalog_arguments(tool, {"query": "Tuấn"}) == {"query": "Tuấn"}
+
+
 def test_write_tool_records_kind_after_environment_call(monkeypatch):
     class FakeTool:
         @classmethod
