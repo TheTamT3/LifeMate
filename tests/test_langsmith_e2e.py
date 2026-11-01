@@ -36,6 +36,16 @@ class FakeEnv:
         return "hash"
 
 
+@pytest.mark.parametrize("result", ["recognized text", [1, 2], None, 42, True])
+def test_trace_wraps_non_object_outputs_without_changing_result(result):
+    from lifemate.langsmith_e2e import LangSmithE2ETracer
+
+    client = FakeClient()
+    tracer = LangSmithE2ETracer(client, "project", "root", "root-order")
+    assert tracer.trace("asr", "chain", {}, lambda: result) is result
+    assert client.updated[0][1]["outputs"] == {"output": result}
+
+
 def test_tracing_tool_env_records_successful_call():
     from lifemate.langsmith_e2e import LangSmithE2ETracer, TracingToolEnv
 

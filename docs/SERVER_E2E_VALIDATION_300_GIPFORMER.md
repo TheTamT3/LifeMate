@@ -20,7 +20,23 @@ cd /workspace/LifeMate
 git pull origin main
 ```
 
-## 2. Kích hoạt môi trường
+## 2. Cài Miniconda và kích hoạt môi trường
+
+Nếu server Linux x86_64 chưa có Miniconda, chạy:
+
+```bash
+curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh
+bash /tmp/miniconda.sh -b -p "$HOME/miniconda3"
+```
+
+Tạo môi trường `lifemate` nếu chưa có (chỉ chạy một lần):
+
+```bash
+source ~/miniconda3/etc/profile.d/conda.sh
+conda create -n lifemate python=3.11 -y
+```
+
+Kích hoạt môi trường trước khi cài dependency:
 
 ```bash
 source ~/miniconda3/etc/profile.d/conda.sh
@@ -39,6 +55,16 @@ nvidia-smi
 ```bash
 pip install -r requirements.txt
 pip install -r requirements-gipformer.txt
+python -m pip install --upgrade pip
+python -m pip install vllm --extra-index-url https://download.pytorch.org/whl/cu129
+vllm download-kernels
+```
+
+Kiểm tra vLLM và CUDA:
+
+```bash
+python -c "import vllm, torch; print('vLLM:', vllm.__version__); print('CUDA:', torch.cuda.is_available())"
+vllm --version
 ```
 
 Kiểm tra runtime Gipformer:
@@ -71,6 +97,22 @@ wc -l data/train/train.jsonl
 ```
 
 Nếu `scripts/eda_train.py` hoặc `scripts/build_validation_subset.py` chưa có sau `git pull`, copy chúng từ máy local hoặc commit chúng trước.
+
+### 4.1. SCP d? li?u t? local l?n server b?t k?
+
+Ch?y t?i th? m?c g?c repo tr?n m?y local. Thay `your-ssh-alias` b?ng SSH alias
+ho?c `user@hostname`, v? ???ng d?n ??ch theo server; th? m?c ??ch `data/` c?n t?n t?i.
+
+```powershell
+# Train
+scp -r "./train+public_test/train+public_test/train" your-ssh-alias:/workspace/LifeMate/data/
+
+# Public test
+scp -r "./train+public_test/train+public_test/public_test" your-ssh-alias:/workspace/LifeMate/data/
+
+# Both
+scp -r "./train+public_test/train+public_test/train" "./train+public_test/train+public_test/public_test" your-ssh-alias:/workspace/LifeMate/data/
+```
 
 ## 5. Tạo subset cố định 300 mẫu
 
@@ -114,16 +156,18 @@ Kiểm tra file Gipformer:
 ls models/gipformer1.5-68m-rnnt/{encoder.onnx,decoder.onnx,joiner.onnx,tokens.txt}
 ```
 
-## 7. Khởi động vLLM
+## 7. Khởi động vLLM chạy nền bằng nohup
 
-Mở một terminal hoặc `tmux` riêng:
+Chạy các lệnh sau trong SSH trên server GPU. `nohup` giữ vLLM chạy khi ngắt
+SSH, không cần tmux. Kích hoạt môi trường `lifemate` trước khi khởi động:
 
 ```bash
 cd /workspace/LifeMate
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate lifemate
+mkdir -p logs
 
-vllm serve models/qwen3-4b \
+nohup vllm serve models/qwen3-4b \
   --served-model-name qwen3-4b \
   --host 127.0.0.1 \
   --port 8000 \
@@ -133,14 +177,42 @@ vllm serve models/qwen3-4b \
   --enforce-eager \
   --enable-auto-tool-choice \
   --tool-call-parser hermes \
-  --reasoning-parser qwen3
+  --reasoning-parser qwen3 \
+  > logs/vllm.log 2>&1 < /dev/null &
+
+echo $! > logs/vllm.pid
 ```
 
-Terminal chính kiểm tra:
+Theo dõi log khởi động:
 
 ```bash
-curl http://127.0.0.1:8000/v1/models
+tail -f logs/vllm.log
 ```
+
+Nhấn `Ctrl+C` để thoát xem log; vLLM vẫn chạy nền. Đợi model tải xong và server
+khởi động, sau đó kiểm tra từ một terminal SSH trên cùng server:
+
+```bash
+curl -f http://127.0.0.1:8000/v1/models
+```
+
+`127.0.0.1` trỏ đến máy đang chạy `curl`. Nếu chưa kết nối được, kiểm tra log,
+tiến trình và cổng trước khi khởi động thêm một instance:
+
+```bash
+cd /workspace/LifeMate
+tail -n 100 logs/vllm.log
+ps -p "$(cat logs/vllm.pid)" -o pid,etime,args
+ss -ltnp 'sport = :8000'
+```
+
+Dừng vLLM khi cần (chạy từ thư mục repo, khi PID vẫn thuộc tiến trình vLLM này):
+
+```bash
+kill "$(cat logs/vllm.pid)"
+```
+
+`nohup` không tự khởi động lại vLLM khi server reboot hoặc tiến trình bị lỗi.
 
 ## 8. Smoke test một sample
 

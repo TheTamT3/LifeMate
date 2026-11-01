@@ -53,7 +53,10 @@ class LangSmithE2ETracer:
         if error is not None:
             payload["error"] = f"{type(error).__name__}: {error}"
         else:
-            payload["outputs"] = _safe_output(outputs)
+            safe_outputs = _safe_output(outputs)
+            payload["outputs"] = (
+                safe_outputs if isinstance(safe_outputs, dict) else {"output": safe_outputs}
+            )
         self.client.update_run(run_id, **payload)
 
     def trace(self, name: str, run_type: str, inputs: dict[str, Any], fn: Callable[[], Any], metadata: dict[str, Any] | None = None) -> Any:
