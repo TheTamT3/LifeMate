@@ -75,6 +75,32 @@ def test_nested_traces_use_agent_parent_and_restore_context():
     assert client.created[-1]['parent_run_id'] == 'root'
 
 
+@pytest.mark.parametrize('failed', [False, True])
+def test_sdk_patch_preserves_nested_span_parent(monkeypatch, failed):
+    from uuid import uuid4
+    from langsmith import Client
+    from lifemate.langsmith_e2e import LangSmithE2ETracer
+
+    patches = []
+    monkeypatch.setattr(Client, 'create_run', lambda self, **kwargs: None)
+    monkeypatch.setattr(Client, '_update_run', lambda self, data, **kwargs: patches.append(data))
+    client = Client(api_key='test-key', auto_batch_tracing=False, tracing_sampling_rate=1.0)
+    root_id = str(uuid4())
+    tracer = LangSmithE2ETracer(client, 'project', root_id, 'root-order')
+    agent_id, agent_order = tracer.start('agent', 'chain', {})
+    token = tracer._parent.set((agent_id, agent_order))
+    child_id, child_order = tracer.start('tool', 'tool', {})
+    tracer._parent.reset(token)
+    # Finishing after context restoration must still use the original parent.
+    tracer.finish(child_id, outputs={'ok': True},
+                  error=RuntimeError('tool failed') if failed else None)
+    tracer.finish(agent_id, outputs={})
+    assert str(patches[0]['parent_run_id']) == agent_id
+    assert str(patches[0]['trace_id']) == root_id
+    assert patches[0]['dotted_order'] == child_order
+    assert str(patches[1]['parent_run_id']) == root_id
+
+
 def test_async_model_trace_records_messages_usage_and_errors():
     import asyncio
     from dataclasses import dataclass

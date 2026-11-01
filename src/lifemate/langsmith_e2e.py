@@ -47,7 +47,7 @@ class LangSmithE2ETracer:
         self.root_dotted_order = root_dotted_order
         self._parent = ContextVar(f'langsmith_parent_{root_run_id}', default=(root_run_id, root_dotted_order))
         self._last_start: datetime | None = None
-        self._runs: dict[str, tuple[datetime, str]] = {}
+        self._runs: dict[str, tuple[datetime, str, str]] = {}
 
     def start(self, name: str, run_type: str, inputs: dict[str, Any], metadata: dict[str, Any] | None = None) -> tuple[str, str]:
         run_id = str(uuid4())
@@ -57,7 +57,7 @@ class LangSmithE2ETracer:
             start_time = self._last_start + timedelta(microseconds=1)
         self._last_start = start_time
         dotted_order = f"{parent_order}.{_dotted_order(run_id, start_time)}"
-        self._runs[run_id] = (start_time, dotted_order)
+        self._runs[run_id] = (start_time, dotted_order, parent_id)
         self.client.create_run(
             name=name,
             run_type=run_type,
@@ -74,10 +74,11 @@ class LangSmithE2ETracer:
         return run_id, dotted_order
 
     def finish(self, run_id: str, *, outputs: Any = None, error: Exception | None = None) -> None:
-        start_time, order = self._runs[run_id]
+        start_time, order, parent_id = self._runs[run_id]
         payload: dict[str, Any] = {
             'end_time': max(_now(), self._last_start or start_time, start_time),
             'trace_id': self.root_run_id, 'dotted_order': order,
+            'parent_run_id': parent_id,
         }
         if error is not None:
             payload["error"] = f"{type(error).__name__}: {error}"
