@@ -31,6 +31,26 @@ def load_smoke_module():
     return module
 
 
+def test_span_times_and_dotted_order_follow_execution_even_with_clock_ties(monkeypatch):
+    from datetime import datetime, timezone
+    import lifemate.langsmith_e2e as tracing
+    fixed = datetime(2026, 11, 1, tzinfo=timezone.utc)
+    monkeypatch.setattr(tracing, '_now', lambda: fixed)
+    client = FakeClient()
+    tracer = tracing.LangSmithE2ETracer(client, 'project', 'root', 'root-order')
+    for name, kind in [('llm.first', 'llm'), ('tool.read', 'tool'), ('llm.second', 'llm'), ('tool.write', 'tool')]:
+        tracer.trace(name, kind, {}, lambda: None)
+    times = [r['start_time'] for r in client.created]
+    assert times == sorted(set(times))
+    assert [r['name'] for r in sorted(client.created, key=lambda r: r['dotted_order'])] == [
+        'llm.first', 'tool.read', 'llm.second', 'tool.write']
+    for run in client.created:
+        assert run['dotted_order'].split('.')[-1].startswith(run['start_time'].strftime('%Y%m%dT%H%M%S%fZ'))
+    for _, update in client.updated:
+        assert update['trace_id'] == 'root'
+        assert update['dotted_order']
+
+
 def test_nested_traces_use_agent_parent_and_restore_context():
     from lifemate.langsmith_e2e import LangSmithE2ETracer
     client = FakeClient()

@@ -22,8 +22,8 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def _dotted_order(run_id: str) -> str:
-    return f"{_now().strftime('%Y%m%dT%H%M%S%fZ')}{run_id}"
+def _dotted_order(run_id: str, start_time: datetime | None = None) -> str:
+    return f"{(start_time or _now()).strftime('%Y%m%dT%H%M%S%fZ')}{run_id}"
 
 
 def require_langsmith_environment() -> tuple[str, str]:
@@ -91,7 +91,8 @@ def prepare_experiment(client, samples, dataset_name, experiment_name, metadata,
 
 def _create_root_run(client: Client, project: str, sample: dict[str, Any], split: str, asr_backend: str, llm_model_name: str, reference_example_id=None) -> tuple[str, str]:
     root_run_id = str(uuid4())
-    root_dotted_order = _dotted_order(root_run_id)
+    start_time = _now()
+    root_dotted_order = _dotted_order(root_run_id, start_time)
     client.create_run(
         name="lifemate.e2e.sample",
         run_type="chain",
@@ -102,6 +103,7 @@ def _create_root_run(client: Client, project: str, sample: dict[str, Any], split
         run_id=root_run_id,
         trace_id=root_run_id,
         dotted_order=root_dotted_order,
+        start_time=start_time,
         extra={"metadata": {"split": split, "asr_backend": asr_backend, "llm_model": llm_model_name}},
     )
     return root_run_id, root_dotted_order

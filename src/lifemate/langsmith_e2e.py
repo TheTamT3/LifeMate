@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from contextvars import ContextVar
 from dataclasses import fields, is_dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any, Callable
 from uuid import uuid4
 
@@ -12,8 +12,8 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def _dotted_order(run_id: str) -> str:
-    return f"{_now().strftime('%Y%m%dT%H%M%S%fZ')}{run_id}"
+def _dotted_order(run_id: str, start_time: datetime | None = None) -> str:
+    return f"{(start_time or _now()).strftime('%Y%m%dT%H%M%S%fZ')}{run_id}"
 
 
 def _safe_output(value: Any) -> Any:
@@ -46,11 +46,18 @@ class LangSmithE2ETracer:
         self.root_run_id = root_run_id
         self.root_dotted_order = root_dotted_order
         self._parent = ContextVar(f'langsmith_parent_{root_run_id}', default=(root_run_id, root_dotted_order))
+        self._last_start: datetime | None = None
+        self._runs: dict[str, tuple[datetime, str]] = {}
 
     def start(self, name: str, run_type: str, inputs: dict[str, Any], metadata: dict[str, Any] | None = None) -> tuple[str, str]:
         run_id = str(uuid4())
         parent_id, parent_order = self._parent.get()
-        dotted_order = f"{parent_order}.{_dotted_order(run_id)}"
+        start_time = _now()
+        if self._last_start is not None and start_time <= self._last_start:
+            start_time = self._last_start + timedelta(microseconds=1)
+        self._last_start = start_time
+        dotted_order = f"{parent_order}.{_dotted_order(run_id, start_time)}"
+        self._runs[run_id] = (start_time, dotted_order)
         self.client.create_run(
             name=name,
             run_type=run_type,
@@ -61,12 +68,17 @@ class LangSmithE2ETracer:
             parent_run_id=parent_id,
             trace_id=self.root_run_id,
             dotted_order=dotted_order,
+            start_time=start_time,
             extra={"metadata": metadata or {}},
         )
         return run_id, dotted_order
 
     def finish(self, run_id: str, *, outputs: Any = None, error: Exception | None = None) -> None:
-        payload: dict[str, Any] = {"end_time": _now()}
+        start_time, order = self._runs[run_id]
+        payload: dict[str, Any] = {
+            'end_time': max(_now(), self._last_start or start_time, start_time),
+            'trace_id': self.root_run_id, 'dotted_order': order,
+        }
         if error is not None:
             payload["error"] = f"{type(error).__name__}: {error}"
         else:
