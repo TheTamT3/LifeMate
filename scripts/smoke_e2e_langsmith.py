@@ -225,7 +225,13 @@ def main(argv: list[str] | None = None) -> None:
         references=args.references,
     )
     project = experiment.name
-    rows = [_run_one_sample(sample, args=args, catalog=catalog, runner=runner, llm=llm, asr=asr, client=client, project=project) for sample in samples]
+    from lifemate.pydantic_agent import agent_event_loop
+    with agent_event_loop() as batch_loop:
+        try:
+            rows = [_run_one_sample(sample, args=args, catalog=catalog, runner=runner, llm=llm, asr=asr, client=client, project=project) for sample in samples]
+        finally:
+            # Close the provider's HTTP pool while its owning loop is alive.
+            batch_loop.run(llm.client.close())
     client.flush()
     client.update_project(experiment.id, end_time=_now())
 

@@ -5,11 +5,36 @@ from __future__ import annotations
 import json
 import inspect
 import re
+import asyncio
+from contextlib import contextmanager
+from contextvars import ContextVar, copy_context
 from dataclasses import dataclass, field
 from datetime import date, datetime, time
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr, create_model
+
+
+_batch_runner = ContextVar('lifemate_batch_runner', default=None)
+
+
+@contextmanager
+def agent_event_loop():
+    """Keep pooled async model connections on one loop for a batch."""
+    if _batch_runner.get() is not None:
+        yield _batch_runner.get()
+        return
+    with asyncio.Runner() as runner:
+        token = _batch_runner.set(runner)
+        try:
+            yield runner
+        finally:
+            _batch_runner.reset(token)
+
+
+def run_agent_coroutine(coroutine):
+    runner = _batch_runner.get()
+    return runner.run(coroutine, context=copy_context()) if runner is not None else asyncio.run(coroutine)
 
 
 @dataclass
@@ -273,7 +298,7 @@ def run_agent(
                             break
                     return getattr(agent_run, "result", None)
 
-            return asyncio.run(drive())
+            return run_agent_coroutine(drive())
         run_kwargs = {
             "deps": deps,
             "message_history": message_history or [],

@@ -6,6 +6,23 @@ from pathlib import Path
 import pytest
 
 
+def test_agent_batch_keeps_one_loop_and_closes_it_after_batch():
+    import asyncio
+    from lifemate.pydantic_agent import agent_event_loop, run_agent_coroutine
+    loops = []
+    async def request():
+        loop = asyncio.get_running_loop()
+        if loops:
+            assert loops[0] is loop
+            assert not loops[0].is_closed()
+        loops.append(loop)
+        return 'ok'
+    with agent_event_loop():
+        assert run_agent_coroutine(request()) == 'ok'
+        assert run_agent_coroutine(request()) == 'ok'
+    assert loops[0].is_closed()
+
+
 def load_smoke_module():
     path = Path(__file__).parents[1] / 'scripts' / 'smoke_e2e_langsmith.py'
     spec = importlib.util.spec_from_file_location('smoke_test_module', path)
