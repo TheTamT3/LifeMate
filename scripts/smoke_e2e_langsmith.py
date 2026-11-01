@@ -218,10 +218,13 @@ def main(argv: list[str] | None = None) -> None:
     llm = create_vllm_model(VLLMConfig(args.llm_base_url, args.llm_model_name, args.max_steps))
     dataset_name = args.dataset_name or f'lifemate-{args.root.resolve().name}-{args.split}'
     experiment_name = args.experiment_name or f'{project}-{uuid4().hex[:12]}'
+    from lifemate.pydantic_agent import qwen_thinking_settings
     experiment, args.example_ids = prepare_experiment(
         client, samples, dataset_name, experiment_name,
         {'input_mode': 'reference_text' if args.use_reference_text else 'gipformer',
-         'llm_model': args.llm_model_name, 'seed': args.seed, 'max_steps': args.max_steps},
+         'llm_model': args.llm_model_name, 'seed': args.seed, 'max_steps': args.max_steps,
+         'model_settings': qwen_thinking_settings(args.seed), 'reasoning_language': 'vi',
+         'thinking_in_history': False, 'prompt_version': 'vi-qwen-thinking-v1'},
         references=args.references,
     )
     project = experiment.name

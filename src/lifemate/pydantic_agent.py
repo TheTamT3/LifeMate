@@ -8,7 +8,7 @@ import re
 import asyncio
 from contextlib import contextmanager
 from contextvars import ContextVar, copy_context
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date, datetime, time
 from typing import Any, Literal
 
@@ -16,6 +16,26 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictFloat, Stri
 
 
 _batch_runner = ContextVar('lifemate_batch_runner', default=None)
+
+VIETNAMESE_REASONING = (
+    "Sử dụng tiếng Việt cho phần suy luận và giải thích được trả về. "
+    "Giữ nguyên tên công cụ, khóa JSON, mã định danh và các giá trị kỹ thuật. "
+    "Khi gọi công cụ, tuân thủ đúng schema; không dịch tên công cụ hoặc tên tham số."
+)
+
+
+def qwen_thinking_settings(seed=0):
+    return {'temperature': 0.6, 'top_p': 0.95, 'seed': seed,
+            'extra_body': {'top_k': 20, 'min_p': 0,
+                           'chat_template_kwargs': {'enable_thinking': True}}}
+
+
+def without_thinking(messages):
+    """Keep original responses for tracing, but omit reasoning in model history."""
+    return [replace(message, parts=[part for part in message.parts
+                                   if getattr(part, 'part_kind', None) != 'thinking'])
+            if getattr(message, 'kind', None) == 'response' else message
+            for message in messages]
 
 
 @contextmanager
@@ -246,10 +266,12 @@ def build_agent(model: Any, deps: AgentDependencies) -> Any:
         model=model,
         deps_type=AgentDependencies,
         tools=build_tool_definitions(deps),
+        history_processors=[without_thinking],
         system_prompt=(
             "Bạn là trợ lý tiếng Việt hoạt động ngoại tuyến và thực hiện yêu cầu bằng cách gọi công cụ. "
             "Chỉ sử dụng các công cụ đã đăng ký, không tự bịa mã định danh và không thực hiện thao tác khi không cần gọi công cụ. "
             "Nếu thao tác tiếp theo cần một mã định danh chưa biết, hãy gọi công cụ đọc dữ liệu để tra cứu trước."
+            + " " + VIETNAMESE_REASONING
         ),
     )
 
@@ -275,7 +297,7 @@ def run_agent(
         usage_limits = UsageLimits(request_limit=deps.max_steps)
     except ImportError:  # unit tests can run without optional PydanticAI deps
         usage_limits = _FallbackUsageLimits(request_limit=deps.max_steps)
-    settings = {"temperature": 0, "top_p": 1, "seed": deps.seed}
+    settings = qwen_thinking_settings(deps.seed)
     try:
         if hasattr(agent, "iter"):
             import asyncio

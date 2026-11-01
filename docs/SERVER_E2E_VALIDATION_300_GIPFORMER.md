@@ -244,6 +244,19 @@ kill "$(cat logs/vllm.pid)"
 
 ## 8. Smoke test một sample
 
+Agent dùng cấu hình thinking của Qwen3: `temperature=0.6`, `top_p=0.95`,
+`top_k=20`, `min_p=0`, giữ seed theo CLI. Request vLLM truyền rõ
+`chat_template_kwargs.enable_thinking=true`. System prompt yêu cầu reasoning
+và giải thích bằng tiếng Việt, giữ nguyên tên tool, khóa JSON và mã định danh;
+đây là chỉ dẫn ngôn ngữ, không bảo đảm tuyệt đối model luôn tuân thủ.
+
+History gửi lại model bỏ các `ThinkingPart`, giữ text, tool calls và tool
+results. Reasoning mới vẫn được lưu ở response của từng model span trên
+LangSmith. Metadata Experiment ghi `model_settings`, `reasoning_language=vi`,
+`thinking_in_history=false`, `prompt_version=vi-qwen-thinking-v1` để so với
+baseline. Context, số lượt gọi model và presence penalty không đổi. Không
+cần restart vLLM cho thay đổi cấu hình request/prompt này.
+
 Bước này chạy full pipeline thật, không mock ASR/model/ToolEnv, và gửi trace
 phân cấp lên LangSmith. Cài thêm dependency debug:
 

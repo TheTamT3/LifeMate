@@ -7,7 +7,7 @@ from typing import Any
 
 from .asr import ASR, transcript
 from .data import allowed_tools
-from .pydantic_agent import AgentDependencies, build_agent, run_agent, tool_name_map
+from .pydantic_agent import AgentDependencies, build_agent, run_agent, tool_name_map, VIETNAMESE_REASONING
 
 
 def _tool_env(split: str, sample_id: str, root: Path) -> Any:
@@ -77,6 +77,7 @@ def _build_system_prompt(sample: dict[str, Any]) -> str:
             "Chỉ sử dụng các công cụ đã đăng ký và không tự bịa mã định danh.",
             "Nếu thao tác tiếp theo cần một mã định danh chưa biết, hãy gọi công cụ đọc dữ liệu để tra cứu trước.",
             "Không gọi công cụ khi yêu cầu không cần thực hiện thao tác nào.",
+            VIETNAMESE_REASONING,
             f"Bối cảnh: {json.dumps(context, ensure_ascii=False)}",
         ]
     )

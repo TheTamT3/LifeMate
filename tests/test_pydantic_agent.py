@@ -153,7 +153,26 @@ def test_run_agent_passes_deterministic_settings_and_round_limit():
     run_agent(agent, deps, "request")
     assert agent.kwargs["deps"] is deps
     assert agent.kwargs["usage_limits"].request_limit == 8
-    assert agent.kwargs["model_settings"] == {"temperature": 0, "top_p": 1, "seed": 7}
+    assert agent.kwargs["model_settings"] == {
+        "temperature": 0.6, "top_p": 0.95, "seed": 7,
+        "extra_body": {"top_k": 20, "min_p": 0, "chat_template_kwargs": {"enable_thinking": True}},
+    }
+
+
+def test_history_removes_thinking_without_mutating_original():
+    from dataclasses import dataclass
+    from lifemate.pydantic_agent import without_thinking
+    @dataclass
+    class Response:
+        parts: list
+        kind: str = 'response'
+    thought = types.SimpleNamespace(part_kind='thinking', content='reasoning')
+    tool = types.SimpleNamespace(part_kind='tool-call', tool_name='contacts_search')
+    text = types.SimpleNamespace(part_kind='text', content='answer')
+    original = Response([thought, tool, text])
+    cleaned = without_thinking([original])
+    assert cleaned[0].parts == [tool, text]
+    assert original.parts == [thought, tool, text]
 
 
 def test_iter_runner_preserves_same_response_calls_and_stops_after_write():
