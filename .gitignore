@@ -23,6 +23,9 @@ train+public_test/
 
 # Superpowers execution scratch space
 .superpowers/
+review_data/
+review-ui/node_modules/
+review-ui/dist/
 
 # Local public test dataset
 /data/public_test/
