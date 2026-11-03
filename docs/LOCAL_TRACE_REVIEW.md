@@ -35,3 +35,24 @@ Phân tích hiện phủ 300 sample. Tích **Cần đối chiếu comment cũ (1
 Trạng thái này xác nhận nhận định phân nhóm, không phải verdict Agent đúng/sai. Nó không sửa verdict/comment review cũ. Muốn sửa review, mở **Review sample** và lưu riêng. Có thể mở lại đối chiếu để sửa hoặc trả về Chưa đối chiếu. Bản nháp được giữ khi chuyển sample/tab trong phiên trang hiện tại, nhưng phải lưu trước khi đóng hoặc refresh.
 
 Feedback được lưu trong bảng SQLite `analysis_feedback`, gắn với sample và digest của bản phân tích. Nếu nội dung phân tích thay đổi, feedback cũ vẫn được giữ trong DB/export nhưng không tự áp dụng cho bản mới. Lưu từ tab đã cũ trả lỗi xung đột; sao chép ghi chú trước khi refresh. JSON export và SQLite backup bao gồm feedback. File snapshot và dữ liệu phân nhóm gốc không bị sửa bởi thao tác đối chiếu.
+# Điều tra nguyên nhân
+
+Từ bảng nhóm lỗi trong **Tổng quan**, nhấn mã nhóm để mở **Nhóm nguyên nhân / giả thuyết**. Chọn một nhóm nguyên nhân để xem các sample có kết luận điều tra đã lưu tương ứng; dùng **Quay lại nhóm nguyên nhân** hoặc **Xem tất cả sample liên quan** để đổi phạm vi.
+
+Số lượng nguyên nhân tính trên sample liên quan (cả nhóm lỗi chính và phụ), trong bộ lọc hiện tại. Sample chưa có điều tra hoặc có kết luận **Chưa điều tra** nằm trong nhóm cùng tên. Các số liệu là giả thuyết/kết luận đã lưu, không suy luận từ bản nháp và không tự xác nhận replay.
+
+Trong **Phân tích lỗi**, chọn nhóm và sample, rồi kéo tới **Điều tra nguyên nhân** ở cuối phần chi tiết trace.
+
+- **Kết luận nguyên nhân:** Chưa điều tra / Nghi do pipeline / Nghi do model / Không thuộc P01 / Chưa đủ bằng chứng.
+- **Bằng chứng điều tra:** ghi việc còn thiếu, tool cuối và kết quả, điểm dừng trace và model có được gọi tiếp không.
+- **Trạng thái replay:** Chưa chạy / Xác nhận giả thuyết / Bác bỏ giả thuyết / Chưa kết luận.
+- **Chi tiết replay:** ghi giả thuyết, điều kiện chạy, kết quả và đường dẫn bằng chứng.
+
+Nhấn **Lưu điều tra** để lưu. Bản nháp được giữ khi chuyển sample hoặc tab; đóng/tải lại trang sẽ mất bản nháp chưa lưu. Kết luận nghi do pipeline/model chỉ là giả thuyết; chọn trạng thái replay không tự chạy mô hình.
+
+Dữ liệu nằm trong bảng SQLite `investigations`, gắn với sample và phiên bản phân tích, được đưa vào export/backup. Không thay đổi comment, verdict, feedback đối chiếu hay nhóm lỗi. Nếu nội dung file phân tích thay đổi, điều tra phiên bản cũ vẫn có trong export nhưng không hiện ở phiên bản mới. Lưu xung đột trả HTTP 409 và giữ bản nháp để sao chép trước khi tải lại.
+# Nguyên nhân riêng theo nhóm lỗi
+
+File tùy chọn `review_data/group_causes.json` lưu taxonomy và mapping sample theo từng nhóm lỗi, kèm `analysis_key` trùng dữ liệu phân tích đang dùng. API `/api/analysis` trả trường `group_causes`; UI ưu tiên taxonomy của nhóm đang mở, nếu chưa có thì dùng kết luận điều tra chung như trước. Mapping không chỉnh sửa `error_analysis.json`, comment, verdict, feedback hoặc nội dung điều tra.
+
+D02 hiện có 8 nhóm nguyên nhân cho 68 sample. P01 giữ phân loại điều tra hiện tại. Các sample chưa được gán trong taxonomy riêng hiện “Chưa điều tra trong nhóm này”. API export review/SQLite không chứa file taxonomy này; cần sao lưu `group_causes.json` cùng snapshot và analysis khi chuyển workspace.

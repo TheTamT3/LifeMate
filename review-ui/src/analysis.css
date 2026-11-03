@@ -268,3 +268,7 @@
 .analysis-feedback label { display: block; margin: 12px 0; }
 .analysis-feedback textarea { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; }
 .analysis-feedback button { margin-right: 8px; }
+.cause-list { display: grid; gap: 8px; }
+.cause-list button { display: flex; justify-content: space-between; gap: 12px; align-items: center; width: 100%; padding: 12px; text-align: left; color: #163d39; background: #e5f2ef; border: 1px solid #a7cec4; border-radius: 8px; }
+.cause-list button:hover { background: #cce7df; }
+.cause-list b { min-width: 28px; text-align: center; }

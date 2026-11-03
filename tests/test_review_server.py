@@ -11,6 +11,23 @@ spec.loader.exec_module(module)
 
 
 class ReviewTests(unittest.TestCase):
+    def test_investigation_is_persistent_separate_and_conflict_safe(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'reviews.sqlite'
+            store=module.ReviewStore(path)
+            store.save('one',{'comment':'keep'})
+            store.save_feedback('one','key',{'status':'agree'})
+            before=(store.all(),store.feedback('key'))
+            saved=store.save_investigation('one','key',{'conclusion':'pipeline','evidence':'stopped after write','replay':'not_run','replay_notes':'','revision':0})
+            self.assertEqual(saved['revision'],1)
+            self.assertEqual(module.ReviewStore(path).investigations('key')['one'],saved)
+            self.assertEqual(store.investigations('other'),{})
+            self.assertEqual((store.all(),store.feedback('key')),before)
+            self.assertEqual(len(store.export_investigations()),1)
+            with self.assertRaises(module.Conflict): store.save_investigation('one','key',{'conclusion':'model','replay':'not_run','revision':0})
+            for patch in ({'conclusion':'bad'},{'replay':'bad'},{'evidence':[]},{'replay_notes':'x'*100001}):
+                with self.assertRaises(ValueError): store.save_investigation('two','key',{'conclusion':'insufficient','replay':'not_run',**patch})
+
     def test_analysis_feedback_is_separate_versioned_and_conflict_safe(self):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'review.sqlite'

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./analysis.css";
+import Investigation from "./Investigation";
 
 function Json({ value }) {
   return <pre>{JSON.stringify(value, null, 2)}</pre>;
@@ -12,6 +13,7 @@ const belongs = (r, id) => r.primary_group === id || r.secondary_groups.includes
 const layerNames = { M: "Hành vi model", P: "Pipeline", D: "Reference & tiêu chí", S: "Đối chứng phù hợp", U: "Chưa kết luận" };
 const feedbackNames = { unreviewed: "Chưa đối chiếu", agree: "Đồng ý", disagree: "Không đồng ý", needs_check: "Cần kiểm tra thêm" };
 const emptyFeedback = { status: "unreviewed", note: "", revision: 0 };
+const causeNames = { pipeline: "Nghi do pipeline dừng sớm", model: "Nghi do model · có thể kèm lỗi pipeline", insufficient: "Chưa đủ bằng chứng", not_p01: "Không thuộc P01", uninvestigated: "Chưa điều tra" };
 
 export default function ErrorAnalysis({ reviews, total, onOpenSample, saving, onData, selection }) {
   const [data, setData] = useState(undefined);
@@ -22,10 +24,12 @@ export default function ErrorAnalysis({ reviews, total, onOpenSample, saving, on
   const [priorityOnly, setPriorityOnly] = useState(false);
   const [groupId, setGroupId] = useState("P01");
   const [sampleId, setSampleId] = useState("train_0672");
+  const [cause, setCause] = useState(null);
   const [feedbackFilter, setFeedbackFilter] = useState("");
   const [drafts, setDrafts] = useState({});
   const [pending, setPending] = useState({});
   const [messages, setMessages] = useState({});
+  useEffect(() => { setCause(null); }, [groupId, selection, priorityOnly, feedbackFilter, layer, query]);
   useEffect(() => { onData?.(error ? null : data); }, [data, error, onData]);
   useEffect(() => {
     if (!selection) return;
@@ -80,7 +84,12 @@ export default function ErrorAnalysis({ reviews, total, onOpenSample, saving, on
   const selectedGroup = groupId === "" ? undefined : groups.find(([id]) => id === groupId) || groups[0];
   const gid = selectedGroup?.[0], group = selectedGroup?.[1];
   const related = gid ? scoped.filter(r => belongs(r, gid)) : scoped.filter(r => !layer || r.primary_group.startsWith(layer) || r.secondary_groups.some(g => g.startsWith(layer)));
-  const visible = related.filter(r => !q || (group && searchGroup(gid, group)) || searchSample(r));
+  const searched = related.filter(r => !q || (group && searchGroup(gid, group)) || searchSample(r));
+  const scopedCauses = data.group_causes?.[groupId];
+  const activeCauseNames = scopedCauses ? { ...scopedCauses.names, uninvestigated: "Chưa điều tra trong nhóm này" } : causeNames;
+  const causeOf = r => scopedCauses ? (scopedCauses.samples[r.sample_id] || "uninvestigated") : (data.investigations?.[r.sample_id]?.conclusion || "uninvestigated");
+  const causeCounts = Object.entries(activeCauseNames).map(([id, name]) => [id, name, searched.filter(r => causeOf(r) === id).length]).filter(([, , count]) => count).sort((a, b) => b[2] - a[2]);
+  const visible = cause === null ? [] : searched.filter(r => cause === "" || causeOf(r) === cause);
   const record = visible.find(r => r.sample_id === sampleId) || visible[0];
   const current = record ? reviews[record.sample_id] : undefined;
   const captured = record?.existing_review;
@@ -104,8 +113,20 @@ export default function ErrorAnalysis({ reviews, total, onOpenSample, saving, on
     <div className="analysis-intro"><div><h1>Agent lệch ở bước nào?</h1><p className="analysis-muted">Từ mẫu lỗi → sample → bằng chứng. Tách hành vi model, pipeline và tiêu chí đánh giá.</p></div><div className="analysis-kpis"><div><b>{data.records.length} / {total}</b><small>Phạm vi phân tích</small></div><div><b>{Object.keys(data.groups).length}</b><small>Mẫu phân loại</small></div><div><b>{revisions.size}</b><small>Phiên bản trace</small></div></div></div>
     <main className="analysis-layout">
       <aside className="analysis-panel"><div className="analysis-panelhead"><h2>Nhóm phân tích</h2><select aria-label="Lọc lớp phân tích" value={layer} onChange={e => setLayer(e.target.value)}><option value="">Tất cả các lớp</option><option value="M">Hành vi model</option><option value="P">Pipeline</option><option value="D">Reference & tiêu chí</option><option value="S">Đối chứng phù hợp</option><option value="U">Chưa kết luận</option></select><input aria-label="Tìm nhóm hoặc sample" placeholder="Tìm nhóm / sample / nội dung…" value={query} onChange={e => setQuery(e.target.value)} /></div><div className="analysis-list">{groups.length ? groups.map(([id, g]) => <button key={id} data-analysis-group={id} aria-pressed={id === gid} className={id === gid ? "selected" : ""} onClick={() => { setGroupId(id); setSampleId(""); }}><span className="analysis-count">{scoped.filter(r => belongs(r, id)).length}</span><b>{id}</b><span className="analysis-groupname">{g.name}</span><small>{layerNames[id[0]] || g.layer}</small></button>) : <p className="analysis-empty">Không tìm thấy nhóm phù hợp.</p>}</div><p className="analysis-footnote">Số bên cạnh nhóm gồm cả sample có nhóm phụ. Một sample có thể xuất hiện ở nhiều nhóm.</p></aside>
-      <section className="analysis-panel"><div className="analysis-panelhead"><h2>{group?.name || "Tất cả nhóm trong phạm vi lọc"}</h2><p>{group?.definition}</p>{group && <span className="analysis-badge green">{related.length} liên quan · {related.filter(r => r.primary_group === gid).length} nhóm chính</span>}</div><div className="analysis-list">{visible.map(r => <button key={r.sample_id} data-analysis-sample={r.sample_id} aria-pressed={r.sample_id === record?.sample_id} className={r.sample_id === record?.sample_id ? "selected" : ""} onClick={() => setSampleId(r.sample_id)}><strong>{r.sample_id}</strong><span className={"analysis-badge " + ((!gid || r.primary_group === gid) ? "green" : "blue")}>{(!gid || r.primary_group === gid) ? "Nhóm chính" : "Nhóm phụ"}</span><p>{r.question}</p><small>{r.subtype}</small><span className="analysis-badge">rev {r.trace_revision || "Không rõ"}</span></button>)}</div><p className="analysis-footnote">Comment/verdict hiện tại và nhận định thử được hiển thị riêng.</p></section>
-      <section className="analysis-panel analysis-detail" aria-live="polite">{!record ? <p className="analysis-empty">Không có sample phù hợp bộ lọc.</p> : <>
+      <section className="analysis-panel"><div className="analysis-panelhead"><h2>{group?.name || "Tất cả nhóm trong phạm vi lọc"}</h2><p>{group?.definition}</p>{group && <span className="analysis-badge green">{related.length} liên quan · {related.filter(r => r.primary_group === gid).length} nhóm chính</span>}</div>
+        <div className="analysis-panelhead">
+          <h3>Nhóm nguyên nhân / giả thuyết</h3>
+          <p>Dựa trên kết luận điều tra đã lưu, chưa mặc định được xác nhận bằng replay. Có {searched.length} sample liên quan trong bộ lọc, gồm cả nhóm chính và nhóm phụ.</p>
+          {cause === null ? <div className="cause-list">
+            {causeCounts.map(([id, name, count]) => <button key={id} data-cause={id} onClick={() => { setCause(id); setSampleId(""); }}><span>{name}</span><b>{count}</b></button>)}
+            <button data-cause="all" onClick={() => { setCause(""); setSampleId(""); }}><span>Xem tất cả sample liên quan</span><b>{searched.length}</b></button>
+          </div> : <>
+            <button onClick={() => setCause(null)}>Quay lại nhóm nguyên nhân</button>
+            <p><strong>{cause === "" ? "Tất cả nguyên nhân" : activeCauseNames[cause]}</strong> · {visible.length} sample</p>
+          </>}
+        </div>
+        <div className="analysis-list">{visible.map(r => <button key={r.sample_id} data-analysis-sample={r.sample_id} aria-pressed={r.sample_id === record?.sample_id} className={r.sample_id === record?.sample_id ? "selected" : ""} onClick={() => setSampleId(r.sample_id)}><strong>{r.sample_id}</strong><span className={"analysis-badge " + ((!gid || r.primary_group === gid) ? "green" : "blue")}>{(!gid || r.primary_group === gid) ? "Nhóm chính" : "Nhóm phụ"}</span><p>{r.question}</p><small>{r.subtype}</small><span className="analysis-badge">rev {r.trace_revision || "Không rõ"}</span></button>)}</div><p className="analysis-footnote">Comment/verdict hiện tại và nhận định thử được hiển thị riêng.</p></section>
+      <section className="analysis-panel analysis-detail" aria-live="polite">{!record ? <p className="analysis-empty">{cause === null ? "Chọn nhóm nguyên nhân / giả thuyết để xem các sample." : "Không có sample phù hợp bộ lọc."}</p> : <>
         <div className="analysis-row"><div><small>CHI TIẾT SAMPLE</small><h2>{record.sample_id}</h2></div><button className="primary" disabled={saving} onClick={() => onOpenSample(record.sample_id)}>Mở trong Review sample →</button></div>
         <span className="analysis-badge">Code {record.trace_revision || "Không rõ"}</span>
         <div className="analysis-question">{record.question}</div><span className="analysis-badge blue">{record.primary_group} · {record.subtype}</span>{record.secondary_groups.map(g => <span className="analysis-badge" key={g}>Phụ: {g}</span>)}
@@ -129,7 +150,9 @@ export default function ErrorAnalysis({ reviews, total, onOpenSample, saving, on
         <details><summary>Conversation trước yêu cầu hiện tại</summary>{(record.history || []).map((h, i) => <div className="analysis-box" key={i}><div className="analysis-label">{h.role}</div><p>{h.audio_text || h.text}</p>{h.tool_calls && <Json value={h.tool_calls} />}{h.tool_results && <Json value={h.tool_results} />}</div>)}</details>
         <details><summary>Context của sample</summary><Json value={record.context} /></details>
         <p className="analysis-muted">Root duration: {typeof record.duration_seconds === "number" ? record.duration_seconds.toFixed(2) + " giây" : "Không có dữ liệu"} · {record.duration_seconds > 30 ? "Vượt 30 giây" : ""}</p><small>Root trace: {record.root_id}</small>
-      </>}</section>
+      </>}
+        <div hidden={!sid}><Investigation sid={sid} analysisKey={data.feedback_key} saved={data.investigations} onSave={(sample, result) => setData(v => ({ ...v, investigations: { ...v.investigations, [sample]: result } }))} /></div>
+      </section>
     </main>
   </div>;
 }

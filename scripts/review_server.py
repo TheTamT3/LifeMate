@@ -79,6 +79,26 @@ def load_analysis(path, snapshot_bytes):
     except (OSError,UnicodeError,TypeError,KeyError,json.JSONDecodeError) as exc:
         raise ValueError('Cannot read analysis data: '+str(exc)) from exc
 
+def load_group_causes(path, analysis_key, analysis):
+    """Optional group-specific findings, bound to the unchanged source analysis."""
+    if not path.exists(): return {}
+    value=json.loads(path.read_text(encoding='utf-8'))
+    if not isinstance(value,dict) or value.get('analysis_key')!=analysis_key:
+        raise ValueError('Group causes belong to another analysis')
+    groups=value.get('groups')
+    if not isinstance(groups,dict): raise ValueError('Invalid group causes')
+    for group, findings in groups.items():
+        if group not in analysis['groups'] or not isinstance(findings,dict):
+            raise ValueError('Unknown cause group')
+        names=findings.get('names'); samples=findings.get('samples')
+        if not isinstance(names,dict) or not names or any(not isinstance(k,str) or not isinstance(v,str) for k,v in names.items()) or not isinstance(samples,dict):
+            raise ValueError('Invalid cause taxonomy')
+        members={r['sample_id'] for r in analysis['records'] if r['primary_group']==group or group in r['secondary_groups']}
+        if any(sid not in members or not isinstance(cause,str) or cause not in names for sid,cause in samples.items()):
+            raise ValueError('Invalid scoped sample cause')
+    return groups
+
+
 def validate_source(source):
     expected={'018769bd-b6ea-465f-8a0d-3fd79d38a6b9','99bc0d7b-580d-4e24-889c-582c0662661b'}
     if set(source.get('sources',[]))!=expected:
@@ -91,6 +111,7 @@ class ReviewStore:
         with self.connect() as db:
             db.execute('CREATE TABLE IF NOT EXISTS reviews (sample TEXT PRIMARY KEY, payload TEXT NOT NULL)')
             db.execute('CREATE TABLE IF NOT EXISTS analysis_feedback (sample TEXT, analysis_key TEXT, payload TEXT NOT NULL, PRIMARY KEY(sample,analysis_key))')
+            db.execute('CREATE TABLE IF NOT EXISTS investigations (sample TEXT, analysis_key TEXT, payload TEXT NOT NULL, PRIMARY KEY(sample,analysis_key))')
 
     @contextmanager
     def connect(self):
@@ -121,6 +142,29 @@ class ReviewStore:
             if value.get('revision',0)!=revision: raise Conflict('Đối chiếu đã thay đổi ở tab khác. Tải lại trang trước khi lưu; hãy sao chép ghi chú đang sửa.')
             payload={'status':value['status'],'note':value.get('note',''),'revision':revision+1,'updated_at':datetime.now(timezone.utc).isoformat()}
             db.execute('INSERT OR REPLACE INTO analysis_feedback VALUES (?,?,?)',(sample,analysis_key,json.dumps(payload,ensure_ascii=False)))
+            return payload
+
+    def investigations(self, analysis_key):
+        with self.connect() as db:
+            return {sid:json.loads(payload) for sid,payload in db.execute('SELECT sample,payload FROM investigations WHERE analysis_key=?',(analysis_key,))}
+
+    def export_investigations(self):
+        with self.connect() as db:
+            return [{'sample_id':sid,'analysis_key':key,**json.loads(payload)} for sid,key,payload in db.execute('SELECT sample,analysis_key,payload FROM investigations')]
+
+    def save_investigation(self, sample, analysis_key, value):
+        if value.get('conclusion') not in ('uninvestigated','pipeline','model','not_p01','insufficient'): raise ValueError('Invalid conclusion')
+        if value.get('replay') not in ('not_run','confirmed','refuted','inconclusive'): raise ValueError('Invalid replay status')
+        for field in ('evidence','replay_notes'):
+            if not isinstance(value.get(field,''),str) or len(value.get(field,''))>100000: raise ValueError('Invalid '+field)
+        with self.connect() as db:
+            db.execute('BEGIN IMMEDIATE')
+            row=db.execute('SELECT payload FROM investigations WHERE sample=? AND analysis_key=?',(sample,analysis_key)).fetchone()
+            revision=json.loads(row[0])['revision'] if row else 0
+            if value.get('revision',0)!=revision: raise Conflict('Investigation changed in another tab. Copy your draft and reload.')
+            payload={k:value.get(k,'') for k in ('conclusion','evidence','replay','replay_notes')}
+            payload.update(revision=revision+1,updated_at=datetime.now(timezone.utc).isoformat())
+            db.execute('INSERT OR REPLACE INTO investigations VALUES (?,?,?)',(sample,analysis_key,json.dumps(payload,ensure_ascii=False)))
             return payload
 
     def save(self, sample, value):
@@ -186,6 +230,8 @@ def main():
             key=hashlib.sha256(json.dumps(value,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
             value['feedback_key']=key
             value['analysis_feedback']=store.feedback(key)
+            value['investigations']=store.investigations(key)
+            value['group_causes']=load_group_causes(args.data/'group_causes.json',key,value)
         return value
 
     class Handler(SimpleHTTPRequestHandler):
@@ -202,7 +248,7 @@ def main():
             if path=='/api/analysis':
                 try: return self.reply(active_analysis())
                 except ValueError as exc: return self.reply({'error':str(exc)},422)
-            if path=='/api/export': return self.reply({'experiment':data['experiment'],'reviews':store.all(),'analysis_feedback':store.export_feedback()})
+            if path=='/api/export': return self.reply({'experiment':data['experiment'],'reviews':store.all(),'analysis_feedback':store.export_feedback(),'investigations':store.export_investigations()})
             if path=='/api/backup':
                 with tempfile.TemporaryDirectory() as tmp:
                     p=Path(tmp)/'backup.sqlite'
@@ -231,18 +277,19 @@ def main():
             if origin and origin not in (f'http://127.0.0.1:{args.port}',f'http://localhost:{args.port}'): return self.reply({'error':'Origin rejected'},403)
             path=unquote(urlsplit(self.path).path)
             feedback=path.startswith('/api/analysis-feedback/')
-            sid=path.removeprefix('/api/analysis-feedback/' if feedback else '/api/review/')
-            if (not feedback and not path.startswith('/api/review/')) or sid not in samples: return self.reply({'error':'Unknown sample'},404)
+            investigation=path.startswith('/api/investigation/')
+            sid=path.removeprefix('/api/investigation/' if investigation else '/api/analysis-feedback/' if feedback else '/api/review/')
+            if (not investigation and not feedback and not path.startswith('/api/review/')) or sid not in samples: return self.reply({'error':'Unknown sample'},404)
             try:
                 size=int(self.headers.get('Content-Length','0'))
                 if size<1 or size>200000: raise ValueError('Invalid request size')
                 value=json.loads(self.rfile.read(size))
                 if not isinstance(value,dict): raise ValueError('Expected object')
-                if feedback:
+                if feedback or investigation:
                     analysis=active_analysis()
                     if analysis is None or sid not in {r['sample_id'] for r in analysis['records']}: raise ValueError('Sample has no active analysis')
                     if value.get('analysis_key')!=analysis['feedback_key']: raise Conflict('Analysis changed. Reload before saving feedback.')
-                    self.reply(store.save_feedback(sid,analysis['feedback_key'],value))
+                    self.reply((store.save_investigation if investigation else store.save_feedback)(sid,analysis['feedback_key'],value))
                 else:
                     self.reply(store.save(sid,value))
             except Conflict as exc: self.reply({'error':str(exc)},409)
