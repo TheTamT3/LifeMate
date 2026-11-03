@@ -11,7 +11,7 @@ from typing import Any
 class VLLMConfig:
     base_url: str = "http://127.0.0.1:8000/v1"
     model_name: str = "qwen3-4b"
-    max_steps: int = 8
+    max_steps: int = 10
 
     def __post_init__(self) -> None:
         validate_loopback_url(self.base_url)

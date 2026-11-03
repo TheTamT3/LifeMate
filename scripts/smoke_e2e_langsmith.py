@@ -214,7 +214,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--asr-backend", choices=["gipformer"], default="gipformer")
     parser.add_argument("--llm-base-url", default="http://127.0.0.1:8000/v1")
     parser.add_argument("--llm-model-name", default="qwen3-4b")
-    parser.add_argument("--max-steps", type=int, default=8)
+    parser.add_argument("--max-steps", type=int, default=10)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--project", default=None)
     parser.add_argument("--use-reference-text", action="store_true", help="use train audio_text instead of running ASR")

@@ -24,6 +24,24 @@ def test_prompt_separates_system_context_from_current_user_request():
     assert _build_agent_prompt(sample, sample["audio_text"], []) == sample["audio_text"]
 
 
+def test_system_prompt_adds_only_derived_calendar_facts_not_label_or_state():
+    sample = {
+        "context": {"current_time": "2026-11-03T23:30:00+07:00", "timezone": "Asia/Ho_Chi_Minh"},
+        "label": {"secret_label": "gold-only"},
+        "state": {"secret_state": "state-only"},
+    }
+    system = _build_system_prompt(sample)
+    assert "Mốc lịch suy ra từ context" in system
+    assert '"tomorrow": "2026-11-04"' in system
+    assert "gold-only" not in system
+    assert "state-only" not in system
+
+
+def test_system_prompt_omits_calendar_facts_without_aware_anchor():
+    system = _build_system_prompt({"context": {"current_time": "2026-11-03T23:30:00"}})
+    assert "Mốc lịch suy ra từ context" not in system
+
+
 def test_history_maps_official_tool_names_to_wire_names_and_tool_results():
     tools = [
         {"name": "alarm.list", "kind": "read"},

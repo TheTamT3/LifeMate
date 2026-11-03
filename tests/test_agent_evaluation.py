@@ -22,6 +22,28 @@ def test_fuzzy_strict_threshold_and_exact_other_arguments():
     assert tool_call_accuracy(predicted('a b c d e', 2), gold, catalog) == 0
 
 
+def test_optional_explicit_default_does_not_equal_omitted_argument():
+    catalog = {"tasks.add": {"parameters": {"properties": {"priority": {"type": "string"}}}}}
+    gold = [{"name": "tasks.add", "arguments": {"title": "Pay bill"}}]
+    predicted = [{"name": "tasks.add", "arguments": {"title": "Pay bill", "priority": "normal"}}]
+    assert tool_call_accuracy(predicted, gold, catalog) == 0
+
+
+def test_matching_state_hash_does_not_change_tool_call_score():
+    from types import SimpleNamespace
+    from lifemate.agent_evaluation import TrainEvaluator
+    evaluator = object.__new__(TrainEvaluator)
+    evaluator.validate = SimpleNamespace(schema_error=lambda *args: None)
+    feedback = []
+    client = SimpleNamespace(create_feedback=lambda **kwargs: feedback.append(kwargs))
+    predicted = {"tool_calls": [{"name": "x", "arguments": {"extra": 1}}], "state_hash": "same"}
+    reference = {"tool_calls": [{"name": "x", "arguments": {}}], "state_hash": "same"}
+    evaluator.publish(client, "run", {"context": {}}, predicted, reference, {})
+    assert [(item["key"], item["score"]) for item in feedback] == [
+        ("tool_call_accuracy", 0), ("state_hash_match", 1)
+    ]
+
+
 def test_reference_uses_official_hash_and_partial_final_state(tmp_path):
     import json
     import shutil

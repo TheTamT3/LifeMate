@@ -17,4 +17,4 @@ def test_vllm_config_defaults():
     config = VLLMConfig()
     assert config.base_url == "http://127.0.0.1:8000/v1"
     assert config.model_name == "qwen3-4b"
-    assert config.max_steps == 8
+    assert config.max_steps == 10

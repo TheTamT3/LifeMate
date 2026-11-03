@@ -13,6 +13,9 @@ from dataclasses import dataclass, field, replace
 from datetime import date, datetime, time
 from typing import Any, Literal
 
+from .tool_semantics import tool_semantics_note
+from .agent_policy import agent_instructions
+
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr, create_model
 
 
@@ -183,7 +186,7 @@ def _validate_formats(value: Any, spec: dict[str, Any]) -> None:
         elif fmt == "time":
             time.fromisoformat(value.replace("Z", "+00:00"))
         elif fmt == "email":
-            if not re.fullmatch(r"[^@\\s]+@[^@\\s]+\\.[^@\\s]+", value):
+            if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", value):
                 raise ValueError
         elif fmt == "uuid":
             import uuid
@@ -243,6 +246,9 @@ def build_tool_definitions(deps: AgentDependencies) -> list[Any]:
 
         schema = _catalog_json_schema(argument_model, tool)
         description = str(tool.get("description", ""))
+        note = tool_semantics_note(official_name)
+        if note:
+            description = f"{description} {note}".strip()
         if official_name not in description:
             description = f"Tên công cụ chính thức: {official_name}. {description}".strip()
         if not schema.get("properties"):
@@ -320,12 +326,7 @@ def build_agent(model: Any, deps: AgentDependencies) -> Any:
         history_processors=[without_thinking],
         # Instructions are merged with per-sample instructions into one leading
         # system message, including when a conversation history is supplied.
-        instructions=(
-            "Bạn là trợ lý tiếng Việt hoạt động ngoại tuyến và thực hiện yêu cầu bằng cách gọi công cụ. "
-            "Chỉ sử dụng các công cụ đã đăng ký, không tự bịa mã định danh và không thực hiện thao tác khi không cần gọi công cụ. "
-            "Nếu thao tác tiếp theo cần một mã định danh chưa biết, hãy gọi công cụ đọc dữ liệu để tra cứu trước."
-            + " " + VIETNAMESE_REASONING
-        ),
+        instructions=agent_instructions(),
     )
 
 
@@ -339,9 +340,9 @@ def run_agent(
 ) -> Any:
     """Run one PydanticAI conversation with deterministic settings.
 
-    PydanticAI owns the model/tool message loop. The registered tools are
-    sequential barriers, and the prompt instructs the model to finish after a
-    write/meta operation; the request limit is the final safety bound.
+    PydanticAI owns the model/tool message loop and decides when to finish.
+    Tools execute sequentially; writes do not end the conversation. Only the
+    explicit request for user input pauses it, within the model request limit.
     """
 
     try:
@@ -369,7 +370,7 @@ def run_agent(
                         before = len(deps.calls)
                         node = await agent_run.next(node)
                         new_calls = deps.calls[before:]
-                        if any(call["kind"] != "read" for call in new_calls):
+                        if any(call["name"] == "sys.ask_missing_info" for call in new_calls):
                             break
                     return getattr(agent_run, "result", None)
 

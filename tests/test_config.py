@@ -7,7 +7,7 @@ from lifemate.config import RuntimeConfig, seed_everything
 
 def test_runtime_config_defaults_and_context_limit(tmp_path):
     config = RuntimeConfig(tmp_path / "qwen", tmp_path / "asr")
-    assert config.max_steps == 8
+    assert config.max_steps == 10
     assert config.max_new_tokens == 128
     with pytest.raises(ValueError):
         RuntimeConfig(tmp_path / "qwen", tmp_path / "asr", context_length=16_385)
