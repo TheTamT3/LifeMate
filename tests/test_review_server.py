@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -10,6 +11,52 @@ spec.loader.exec_module(module)
 
 
 class ReviewTests(unittest.TestCase):
+    def test_analysis_feedback_is_separate_versioned_and_conflict_safe(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'review.sqlite'
+            store=module.ReviewStore(path)
+            store.save('one', {'comment':'original','revision':0})
+            before=store.all()
+            saved=store.save_feedback('one','analysis-a',{'status':'agree','note':'checked evidence','revision':0})
+            self.assertEqual(saved['revision'],1)
+            self.assertEqual(module.ReviewStore(path).feedback('analysis-a')['one']['note'],'checked evidence')
+            self.assertEqual(store.feedback('analysis-b'),{})
+            self.assertEqual(store.all(),before)
+            with self.assertRaises(module.Conflict):
+                store.save_feedback('one','analysis-a',{'status':'disagree','revision':0})
+            for value in ({'status':'invalid'},{'status':'agree','note':[]},{'status':'agree','note':'x'*100001}):
+                with self.assertRaises(ValueError): store.save_feedback('one','analysis-b',value)
+            saved=store.save_feedback('one','analysis-a',{'status':'unreviewed','note':'reopen','revision':1})
+            self.assertEqual(saved['status'],'unreviewed')
+            self.assertEqual(len(store.export_feedback()),1)
+
+    def test_analysis_is_optional_and_bound_to_snapshot(self):
+        snapshot=json.dumps({'experiment':'approved','samples':[{'id':'one'}]}).encode()
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'error_analysis.json'
+            self.assertIsNone(module.load_analysis(path,snapshot))
+            value={'experiment':'approved','snapshot_sha256':hashlib.sha256(snapshot).hexdigest(),
+                   'groups':{'M01':{'name':'Wrong tool','layer':'model','definition':'Example'}},
+                   'records':[{'sample_id':'one','primary_group':'M01','secondary_groups':[]}]}
+            path.write_text(json.dumps(value),encoding='utf-8')
+            self.assertEqual(module.load_analysis(path,snapshot)['records'][0]['sample_id'],'one')
+            original=path.read_bytes()
+            self.assertEqual(path.read_bytes(),original)
+            for patch in ({'experiment':'foreign'},{'snapshot_sha256':'stale'},
+                          {'records':[dict(value['records'][0],sample_id='unknown')]},
+                          {'records':value['records']*2},
+                          {'records':[dict(value['records'][0],secondary_groups=['bad'])]},
+                          {'records':[dict(value['records'][0],llm_evidence={})]},
+                          {'records':[dict(value['records'][0],llm_evidence=[{'parts':{}}])]},
+                          {'records':[dict(value['records'][0],llm_evidence=[{'parts':[{'content':{}}]}])]},
+                          {'records':[dict(value['records'][0],history=[{'text':{}}])]},
+                          {'records':[dict(value['records'][0],executed_tools={})]},
+                          {'records':[dict(value['records'][0],existing_review={'comment':{}})]},
+                          {'records':[dict(value['records'][0],assessment={})]},
+                          {'groups':{'M01':None}}):
+                path.write_text(json.dumps(value|patch),encoding='utf-8')
+                with self.assertRaises(ValueError):module.load_analysis(path,snapshot)
+
     def test_persistence_and_conflict(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp)/'review.sqlite'

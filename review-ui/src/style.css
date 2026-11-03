@@ -280,3 +280,9 @@ fieldset {
   position: sticky;
   bottom: 0;
 }
+.error-group-summary { margin-bottom: 24px; }
+.error-group-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+.error-group-table th, .error-group-table td { padding: 10px 14px; border-bottom: 1px solid #d6dfdd; text-align: left; }
+.error-group-table th { background: #e7f0ed; }
+.error-group-table td:last-child, .error-group-table th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.error-group-table tbody tr:hover { background: #eff6f3; }

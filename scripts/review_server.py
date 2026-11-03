@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import io
+import hashlib
 import json
 from pathlib import Path
 import sqlite3
@@ -14,6 +15,69 @@ ROOT = Path(__file__).resolve().parents[1]
 EXPERIMENT = '5d88ade9-1411-4032-9252-81b441078d5c'
 
 class Conflict(Exception): pass
+
+def _analysis_text_fields(value, fields):
+    if not isinstance(value,dict): raise ValueError('Invalid analysis object')
+    for key in fields:
+        if key in value and value[key] is not None and not isinstance(value[key],str):
+            raise ValueError('Invalid analysis text field: '+key)
+
+def _analysis_rows(value, key):
+    rows=value.get(key,[])
+    if not isinstance(rows,list) or any(not isinstance(row,dict) for row in rows):
+        raise ValueError('Invalid analysis list: '+key)
+    return rows
+
+def load_analysis(path, snapshot_bytes):
+    """Read optional local analysis without opening or updating the review store."""
+    if not path.exists(): return None
+    try:
+        value=json.loads(path.read_text(encoding='utf-8'))
+        snapshot=json.loads(snapshot_bytes)
+        if not isinstance(value,dict): raise ValueError('Expected analysis object')
+        if value.get('experiment')!=snapshot['experiment']:
+            raise ValueError('Analysis belongs to another experiment')
+        if value.get('snapshot_sha256')!=hashlib.sha256(snapshot_bytes).hexdigest():
+            raise ValueError('Analysis snapshot differs from the active snapshot')
+        groups=value.get('groups')
+        if not isinstance(groups,dict) or not groups: raise ValueError('Analysis groups are missing')
+        for group in groups.values():
+            if not isinstance(group,dict) or any(not isinstance(group.get(k),str) for k in ('name','layer','definition')):
+                raise ValueError('Invalid analysis group')
+        records=value.get('records')
+        if not isinstance(records,list): raise ValueError('Analysis records must be a list')
+        known={s['id'] for s in snapshot['samples']}
+        seen=set()
+        for record in records:
+            if not isinstance(record,dict): raise ValueError('Invalid analysis record')
+            sid=record.get('sample_id')
+            if not isinstance(sid,str) or sid not in known or sid in seen:
+                raise ValueError('Unknown or duplicate analysis sample')
+            seen.add(sid)
+            primary=record.get('primary_group')
+            secondary=record.get('secondary_groups')
+            if not isinstance(primary,str) or primary not in groups or not isinstance(secondary,list):
+                raise ValueError('Invalid analysis group reference')
+            if any(not isinstance(g,str) or g not in groups or g==primary for g in secondary) or len(set(secondary))!=len(secondary):
+                raise ValueError('Invalid secondary analysis groups')
+            # Validate everything rendered as React children or mapped as a list.
+            # Invalid local files must report an error, never unmount a dirty review.
+            _analysis_text_fields(record,('question','subtype','assessment','confidence',
+                'comparison_with_existing_comment','evidence_summary','cause_and_limits',
+                'trace_revision','root_id'))
+            if record.get('existing_review') is not None:
+                _analysis_text_fields(record['existing_review'],('comment','verdict'))
+            for node in _analysis_rows(record,'llm_evidence'):
+                _analysis_text_fields(node,('id',))
+                for part in _analysis_rows(node,'parts'):
+                    _analysis_text_fields(part,('part_kind','content','tool_name'))
+            for tool in _analysis_rows(record,'executed_tools'):
+                _analysis_text_fields(tool,('id','name'))
+            for turn in _analysis_rows(record,'history'):
+                _analysis_text_fields(turn,('role','audio_text','text'))
+        return value
+    except (OSError,UnicodeError,TypeError,KeyError,json.JSONDecodeError) as exc:
+        raise ValueError('Cannot read analysis data: '+str(exc)) from exc
 
 def validate_source(source):
     expected={'018769bd-b6ea-465f-8a0d-3fd79d38a6b9','99bc0d7b-580d-4e24-889c-582c0662661b'}
@@ -26,6 +90,7 @@ class ReviewStore:
         self.path.parent.mkdir(parents=True,exist_ok=True)
         with self.connect() as db:
             db.execute('CREATE TABLE IF NOT EXISTS reviews (sample TEXT PRIMARY KEY, payload TEXT NOT NULL)')
+            db.execute('CREATE TABLE IF NOT EXISTS analysis_feedback (sample TEXT, analysis_key TEXT, payload TEXT NOT NULL, PRIMARY KEY(sample,analysis_key))')
 
     @contextmanager
     def connect(self):
@@ -37,6 +102,26 @@ class ReviewStore:
     def all(self):
         with self.connect() as db:
             return {key:json.loads(value) for key,value in db.execute('SELECT sample,payload FROM reviews')}
+
+    def feedback(self, analysis_key):
+        with self.connect() as db:
+            return {sid:json.loads(payload) for sid,payload in db.execute('SELECT sample,payload FROM analysis_feedback WHERE analysis_key=?',(analysis_key,))}
+
+    def export_feedback(self):
+        with self.connect() as db:
+            return [{'sample_id':sid,'analysis_key':key,**json.loads(payload)} for sid,key,payload in db.execute('SELECT sample,analysis_key,payload FROM analysis_feedback')]
+
+    def save_feedback(self, sample, analysis_key, value):
+        if value.get('status') not in ('unreviewed','agree','disagree','needs_check'): raise ValueError('Invalid feedback status')
+        if not isinstance(value.get('note',''),str) or len(value.get('note',''))>100000: raise ValueError('Invalid feedback note')
+        with self.connect() as db:
+            db.execute('BEGIN IMMEDIATE')
+            row=db.execute('SELECT payload FROM analysis_feedback WHERE sample=? AND analysis_key=?',(sample,analysis_key)).fetchone()
+            revision=json.loads(row[0])['revision'] if row else 0
+            if value.get('revision',0)!=revision: raise Conflict('Đối chiếu đã thay đổi ở tab khác. Tải lại trang trước khi lưu; hãy sao chép ghi chú đang sửa.')
+            payload={'status':value['status'],'note':value.get('note',''),'revision':revision+1,'updated_at':datetime.now(timezone.utc).isoformat()}
+            db.execute('INSERT OR REPLACE INTO analysis_feedback VALUES (?,?,?)',(sample,analysis_key,json.dumps(payload,ensure_ascii=False)))
+            return payload
 
     def save(self, sample, value):
         if value.get('status','unreviewed') not in ('unreviewed','reviewing','reviewed'): raise ValueError('Invalid status')
@@ -88,10 +173,20 @@ def main():
         temporary.write_text(json.dumps(payload,ensure_ascii=False),encoding='utf-8')
         temporary.replace(snapshot)
     if not snapshot.exists(): parser.error('Import a snapshot first with --import-snapshot')
-    data=json.loads(snapshot.read_text(encoding='utf-8'))
+    snapshot_bytes=snapshot.read_bytes()
+    data=json.loads(snapshot_bytes)
     samples={s['id']:s for s in data['samples']}
     store=ReviewStore(args.data/'reviews.sqlite')
     dist=ROOT/'review-ui/dist'
+
+    def active_analysis():
+        value=load_analysis(args.data/'error_analysis.json',snapshot_bytes)
+        if value is not None:
+            # Bind feedback to the exact analysis, including its snapshot identity.
+            key=hashlib.sha256(json.dumps(value,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+            value['feedback_key']=key
+            value['analysis_feedback']=store.feedback(key)
+        return value
 
     class Handler(SimpleHTTPRequestHandler):
         def __init__(self,*a,**kw): super().__init__(*a,directory=str(dist),**kw)
@@ -104,7 +199,10 @@ def main():
             if path=='/api/samples':
                 return self.reply({'experiment':data['experiment'],'samples':[{'id':s['id'],'text':s['sample'].get('audio_text',''),'duration':s['duration'],'scores':{k:v.get('avg') for k,v in (s['root'].get('feedback_stats') or {}).items()},'tools':[c['name'] for c in (s['root'].get('outputs') or {}).get('tool_calls',[])],'error':s['root'].get('error')} for s in samples.values()]})
             if path=='/api/reviews': return self.reply(store.all())
-            if path=='/api/export': return self.reply({'experiment':data['experiment'],'reviews':store.all()})
+            if path=='/api/analysis':
+                try: return self.reply(active_analysis())
+                except ValueError as exc: return self.reply({'error':str(exc)},422)
+            if path=='/api/export': return self.reply({'experiment':data['experiment'],'reviews':store.all(),'analysis_feedback':store.export_feedback()})
             if path=='/api/backup':
                 with tempfile.TemporaryDirectory() as tmp:
                     p=Path(tmp)/'backup.sqlite'
@@ -131,14 +229,22 @@ def main():
             # Reject browser requests from other origins, even on loopback.
             origin=self.headers.get('Origin')
             if origin and origin not in (f'http://127.0.0.1:{args.port}',f'http://localhost:{args.port}'): return self.reply({'error':'Origin rejected'},403)
-            sid=unquote(urlsplit(self.path).path).removeprefix('/api/review/')
-            if not self.path.startswith('/api/review/') or sid not in samples: return self.reply({'error':'Unknown sample'},404)
+            path=unquote(urlsplit(self.path).path)
+            feedback=path.startswith('/api/analysis-feedback/')
+            sid=path.removeprefix('/api/analysis-feedback/' if feedback else '/api/review/')
+            if (not feedback and not path.startswith('/api/review/')) or sid not in samples: return self.reply({'error':'Unknown sample'},404)
             try:
                 size=int(self.headers.get('Content-Length','0'))
                 if size<1 or size>200000: raise ValueError('Invalid request size')
                 value=json.loads(self.rfile.read(size))
                 if not isinstance(value,dict): raise ValueError('Expected object')
-                self.reply(store.save(sid,value))
+                if feedback:
+                    analysis=active_analysis()
+                    if analysis is None or sid not in {r['sample_id'] for r in analysis['records']}: raise ValueError('Sample has no active analysis')
+                    if value.get('analysis_key')!=analysis['feedback_key']: raise Conflict('Analysis changed. Reload before saving feedback.')
+                    self.reply(store.save_feedback(sid,analysis['feedback_key'],value))
+                else:
+                    self.reply(store.save(sid,value))
             except Conflict as exc: self.reply({'error':str(exc)},409)
             except (ValueError,TypeError) as exc: self.reply({'error':str(exc)},400)
     print(f'Review ready: http://127.0.0.1:{args.port} · {len(samples)} samples',flush=True)

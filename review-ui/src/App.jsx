@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
+import ErrorAnalysis from "./ErrorAnalysis";
 const verdicts = [
   "Chưa kết luận",
   "Agent đúng",
@@ -56,6 +57,8 @@ function download(name, value, type = "application/json") {
   setTimeout(() => URL.revokeObjectURL(u), 1000);
 }
 function App() {
+  const [analysisData, setAnalysisData] = useState(undefined);
+  const [analysisSelection, setAnalysisSelection] = useState(null);
   const [items, setItems] = useState([]),
     [reviews, setReviews] = useState({}),
     [tab, setTab] = useState("review"),
@@ -222,6 +225,7 @@ function App() {
             ["overall", "Tổng quan"],
             ["review", "Review sample"],
             ["comments", "Nhận xét"],
+            ["analysis", "Phân tích lỗi"],
           ].map(([key, label]) => (
             <button
               className={tab === key ? "active" : ""}
@@ -238,9 +242,24 @@ function App() {
           {error} <button onClick={() => setError("")}>Đóng</button>
         </div>
       )}
+      <div hidden={tab !== "analysis"}><ErrorAnalysis reviews={reviews} total={items.length} onOpenSample={select} saving={saving} onData={setAnalysisData} selection={analysisSelection} /></div>
       {tab === "overall" && (
         <main className="wide">
           <h1>Tổng quan</h1>
+          <section className="error-group-summary">
+            <h2>Nhóm lỗi chi tiết · số lượng giảm dần</h2>
+            <p>Đếm theo nhóm chính, mỗi sample xuất hiện một lần. Gồm hành vi model, pipeline và khác biệt reference/tiêu chí (D); nhóm D không mặc định là lỗi nghiệp vụ. Đối chứng đúng (S) và chưa kết luận (U) nằm ngoài bảng.</p>
+            <small>Phân nhóm hiện hành là bản phân tích gốc; feedback đối chiếu được lưu riêng, chưa tự điều chỉnh số đếm.</small>
+            {analysisData === undefined ? <p>Đang tải phân nhóm…</p> : !analysisData ? <p>Chưa có dữ liệu phân nhóm hợp lệ. Mở Phân tích lỗi để kiểm tra.</p> : (() => {
+              const counts = {};
+              for (const r of analysisData.records) counts[r.primary_group] = (counts[r.primary_group] || 0) + 1;
+              const rows = Object.entries(analysisData.groups).filter(([id]) => /^[MPD]/.test(id) && counts[id]).sort(([a], [b]) => counts[b] - counts[a] || a.localeCompare(b));
+              return <>
+                <table className="error-group-table"><thead><tr><th scope="col">Mã nhóm</th><th scope="col">Nhóm lỗi chi tiết</th><th scope="col">Số sample</th></tr></thead><tbody>{rows.map(([id, g]) => <tr key={id} data-summary-group={id}><td><button onClick={() => { setAnalysisSelection({ groupId: id }); setTab("analysis"); }}>{id}</button></td><td>{g.name}</td><td>{counts[id]}</td></tr>)}</tbody></table>
+                <p>Tổng trong bảng: {rows.reduce((sum, [id]) => sum + counts[id], 0)} sample · Đối chứng (S): {analysisData.records.filter(r => r.primary_group.startsWith("S")).length} · Chưa kết luận (U): {analysisData.records.filter(r => r.primary_group.startsWith("U")).length}.</p>
+              </>;
+            })()}
+          </section>
           <div className="grid">
             <section>
               <h2>Tiến độ review</h2>
