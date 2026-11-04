@@ -1,0 +1,46 @@
+{
+  "id": "train_0830",
+  "mode": "archived_tools_only",
+  "tool_calls": [
+    {
+      "name": "contacts.search",
+      "arguments": {
+        "query": "Cô Hạnh"
+      }
+    },
+    {
+      "name": "ewallet.transfer",
+      "arguments": {
+        "amount": 6500000,
+        "contact_id": "c_01"
+      }
+    }
+  ],
+  "state_hash": "f9ed18e032532141308de735a522715a7004b2a1de909bb31e70aee9756a5a2a",
+  "reference_state_hash": "c32bac8287906f4086c39fa295220fa5ad42e436baa5099f6582a8036e5df544",
+  "prefix_results_match_archive": true,
+  "state_matches_reference": false,
+  "llm_called": false,
+  "reference_calls": [
+    {
+      "name": "contacts.search",
+      "arguments": {
+        "query": "Cô Hạnh"
+      }
+    },
+    {
+      "name": "ewallet.transfer",
+      "arguments": {
+        "contact_id": "c_01",
+        "amount": 6500000
+      }
+    },
+    {
+      "name": "chat_ott.send_message",
+      "arguments": {
+        "chat_id": "chat_01",
+        "content": "Cô ơi cháu chuyển tiền nhà tháng 10 rồi ạ, 6.500.000 đồng, mã giao dịch tx_01."
+      }
+    }
+  ]
+}

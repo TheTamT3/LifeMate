@@ -1,0 +1,6059 @@
+{
+  "total": 221,
+  "retry_errors": 56,
+  "rows": [
+    {
+      "sample": {
+        "audio": "audio/train_1200/train_1200.wav",
+        "sample_id": "train_1200"
+      },
+      "trace_id": "403a32a9-b7bf-4a5c-841c-771c545e2ced",
+      "error": "RuntimeError: Tool 'learning_list_courses' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "faa71d97-0de3-49e7-b430-7749a96111fd",
+          "tool_calls": [
+            {
+              "args": "{\"query\": \"bến Ninh Kiều\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8a7df8cdb2781413",
+              "tool_name": "maps_search_place"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8a90389c5d97120d",
+              "tool_name": "learning_list_courses"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "learning_list_courses",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "learning_list_coursesArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "maps_search_place",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "near": {
+                    "default": null,
+                    "description": "Khu vực/địa danh lân cận, ví dụ 'Hồ Tây'; khớp theo từ khoá trên địa chỉ/mô tả/tên (chỉ cần một từ trùng)",
+                    "title": "Near",
+                    "type": "string",
+                    "x-match": "fuzzy"
+                  },
+                  "query": {
+                    "description": "Từ khoá tên hoặc loại địa điểm, ví dụ 'cà phê', 'rạp phim'; khớp theo từ khoá, kết quả xếp theo số từ trùng",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "query"
+                ],
+                "title": "maps_search_placeArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "17dce0b9-2810-48af-85c3-38e18a477482",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-86da8427fbbc9845",
+              "tool_name": "learning_list_courses"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:44:29.911149+00:00",
+              "tool_call_id": "chatcmpl-tool-8a90389c5d97120d",
+              "tool_name": "learning_list_courses"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "learning_list_courses",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "learning_list_coursesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_1185/train_1185.wav",
+        "sample_id": "train_1185"
+      },
+      "trace_id": "c42455aa-69b7-4584-92f5-f628be806869",
+      "error": "RuntimeError: Tool 'medication_list' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "b1004a62-8961-40d6-9f05-85bf5b2c71cc",
+          "tool_calls": [
+            {
+              "args": "{\"location\": \"KTX khu B ĐHQG, Dĩ An\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9e2d83b87bc6cd1f",
+              "tool_name": "medication_list"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "medication_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "medication_listArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "193e1da7-fef8-4587-8085-221f3b4f0c1d",
+          "tool_calls": [
+            {
+              "args": "{\"location\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b9211456cf1dc639",
+              "tool_name": "medication_list"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "KTX khu B ĐHQG, Dĩ An",
+                  "loc": [
+                    "location"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:44:03.694256+00:00",
+              "tool_call_id": "chatcmpl-tool-9e2d83b87bc6cd1f",
+              "tool_name": "medication_list"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "medication_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "medication_listArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_1179/train_1179.wav",
+        "sample_id": "train_1179"
+      },
+      "trace_id": "edc849a1-92a8-4abd-b24d-1dde9c322015",
+      "error": "RuntimeError: Tool 'learning_list_courses' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "015fdc12-035f-4a3c-9f4d-344a3b45bfb3",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9be0c7a5e6b92191",
+              "tool_name": "learning_list_courses"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "learning_list_courses",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "learning_list_coursesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "1b12332a-66bf-4be7-8325-ac05e71eefe2",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-afd01ef5a9bd5299",
+              "tool_name": "learning_list_courses"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:43:56.972382+00:00",
+              "tool_call_id": "chatcmpl-tool-9be0c7a5e6b92191",
+              "tool_name": "learning_list_courses"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "learning_list_courses",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "learning_list_coursesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_1160/train_1160.wav",
+        "sample_id": "train_1160"
+      },
+      "trace_id": "f8042cea-2b58-4043-94e0-b8972c568f74",
+      "error": "RuntimeError: Tool 'flights_my_bookings' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "7677da58-bb0f-4660-ab21-a266809c2024",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8489a13364bf9d8f",
+              "tool_name": "flights_my_bookings"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "flights_my_bookings",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "flights_my_bookingsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "0d7c37ac-b267-4fc9-aa6d-99228aa9177a",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-820fb4f36dcc9f6e",
+              "tool_name": "flights_my_bookings"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:43:25.138846+00:00",
+              "tool_call_id": "chatcmpl-tool-8489a13364bf9d8f",
+              "tool_name": "flights_my_bookings"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "flights_my_bookings",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "flights_my_bookingsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_1130/train_1130.wav",
+        "sample_id": "train_1130"
+      },
+      "trace_id": "5b5a995a-cf63-407b-ac68-fc2529fa4eda",
+      "error": "RuntimeError: Tool 'medication_list' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "bd740817-6f98-442d-8222-314ce2e6840f",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b7d7446dc3a3f07f",
+              "tool_name": "medication_list"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-90e8d198eb536e9f",
+              "tool_name": "notes_list"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "notes_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "notes_listArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "medication_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "medication_listArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "5fa2625d-2a78-4c83-9d04-b8edfdbe590f",
+          "tool_calls": [
+            {
+              "args": "{\"additionalProperties\": \"false\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-ac4098d8e4d8e4af",
+              "tool_name": "medication_list"
+            },
+            {
+              "args": "{\"additionalProperties\": \"false\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-953811df9cd9cbbe",
+              "tool_name": "notes_list"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:42:52.707036+00:00",
+              "tool_call_id": "chatcmpl-tool-b7d7446dc3a3f07f",
+              "tool_name": "medication_list"
+            },
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:42:52.708003+00:00",
+              "tool_call_id": "chatcmpl-tool-90e8d198eb536e9f",
+              "tool_name": "notes_list"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "notes_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "notes_listArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "medication_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "medication_listArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_1113/train_1113.wav",
+        "sample_id": "train_1113"
+      },
+      "trace_id": "a5a1ee73-5182-49c1-803d-d835206918db",
+      "error": "RuntimeError: Tool 'flights_my_bookings' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "9927bef2-a67c-4537-81bf-35e83a2b00d5",
+          "tool_calls": [
+            {
+              "args": "{\"origin\": \"Hà Nội\", \"destination\": \"Nội Bài\", \"date\": \"2026-12-09\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b40fd07cbb722d5e",
+              "tool_name": "flights_search"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "flights_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "date": {
+                    "description": "YYYY-MM-DD, ví dụ 2026-11-29",
+                    "title": "Date",
+                    "type": "string"
+                  },
+                  "destination": {
+                    "description": "Điểm đến: mã IATA (SGN, HAN, DAD) hoặc tên thành phố, ví dụ 'Đà Nẵng'",
+                    "title": "Destination",
+                    "type": "string"
+                  },
+                  "origin": {
+                    "description": "Điểm đi: mã IATA (SGN, HAN, DAD) hoặc tên thành phố, ví dụ 'Hà Nội'",
+                    "title": "Origin",
+                    "type": "string"
+                  },
+                  "passengers": {
+                    "default": null,
+                    "description": "Số nguyên, không dấu chấm hay phẩy, ví dụ 2",
+                    "title": "Passengers",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "origin",
+                  "destination",
+                  "date"
+                ],
+                "title": "flights_searchArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "33aeea46-b4c4-4956-9a96-01312f3be98d",
+          "tool_calls": [
+            {
+              "args": "{\"passengers\": \"1\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8ce2e7bbc3656183",
+              "tool_name": "flights_my_bookings"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "flights_my_bookings",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "flights_my_bookingsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "efca31d8-ca99-4106-9d14-f13e2784095c",
+          "tool_calls": [
+            {
+              "args": "{\"passengers\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b63c11f643015156",
+              "tool_name": "flights_my_bookings"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "1",
+                  "loc": [
+                    "passengers"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:41:33.652298+00:00",
+              "tool_call_id": "chatcmpl-tool-8ce2e7bbc3656183",
+              "tool_name": "flights_my_bookings"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "flights_my_bookings",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "flights_my_bookingsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_1106/train_1106.wav",
+        "sample_id": "train_1106"
+      },
+      "trace_id": "0a8efb1b-fb11-47db-95b3-72f0d084064c",
+      "error": "RuntimeError: Tool 'medication_list' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "cbcbff4e-a6f8-45db-80f8-3bdee84549a5",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-acad1a6435161135",
+              "tool_name": "medication_list"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "medication_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "medication_listArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "7e1f2c6e-7cd9-4a74-9341-1ecdf0d0f53e",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b2430777d340672b",
+              "tool_name": "medication_list"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:41:02.828253+00:00",
+              "tool_call_id": "chatcmpl-tool-acad1a6435161135",
+              "tool_name": "medication_list"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "medication_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "medication_listArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_1074/train_1074.wav",
+        "sample_id": "train_1074"
+      },
+      "trace_id": "d59052c5-3faa-4620-a855-9dadcd991231",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "c28c0805-b4e2-485e-a9c2-f7d72f718456",
+          "tool_calls": [
+            {
+              "args": "{\"amount\": \"220000\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-af63391ccce9a3f7",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "90f5f448-5a2d-4657-8509-6abfd903e819",
+          "tool_calls": [
+            {
+              "args": "{\"amount\": \"220000\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-82ac8e006523496f",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "220000",
+                  "loc": [
+                    "amount"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:40:13.592616+00:00",
+              "tool_call_id": "chatcmpl-tool-af63391ccce9a3f7",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_1060/train_1060.wav",
+        "sample_id": "train_1060"
+      },
+      "trace_id": "5d231b86-a160-408b-91e0-889927276d04",
+      "error": "RuntimeError: Tool 'robot_vacuum_get_status' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "70b87221-1744-45aa-bd44-c67e99ad3d18",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-be6044e5345ec5cd",
+              "tool_name": "robot_vacuum_get_status"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "robot_vacuum_get_status",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "robot_vacuum_get_statusArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "34337996-16a3-448e-8f75-fd6c423c9a30",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-ab3f5bf555bc6916",
+              "tool_name": "robot_vacuum_get_status"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:40:00.173245+00:00",
+              "tool_call_id": "chatcmpl-tool-be6044e5345ec5cd",
+              "tool_name": "robot_vacuum_get_status"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "robot_vacuum_get_status",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "robot_vacuum_get_statusArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_1010/train_1010.wav",
+        "sample_id": "train_1010"
+      },
+      "trace_id": "40631df8-9c69-47b0-a8f4-8953ef7f9198",
+      "error": "RuntimeError: Tool 'subscriptions_list' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "39df9aa0-267d-45da-b269-ac9f159179df",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8dcc414c7365847b",
+              "tool_name": "subscriptions_list"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "subscriptions_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "subscriptions_listArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "37f1734b-f2b4-4a63-aa3b-8fde6b28c327",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-ade07aa57e7f49de",
+              "tool_name": "subscriptions_list"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:39:04.497250+00:00",
+              "tool_call_id": "chatcmpl-tool-8dcc414c7365847b",
+              "tool_name": "subscriptions_list"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "subscriptions_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "subscriptions_listArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0992/train_0992.wav",
+        "sample_id": "train_0992"
+      },
+      "trace_id": "c3a943f2-3e32-42d2-9760-e89ff0dcd6e4",
+      "error": "RuntimeError: Tool 'music_list_tracks' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "960c8efd-5a3f-4cc7-be9c-86138d948143",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b607fa2c94edf74a",
+              "tool_name": "music_list_tracks"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "music_list_tracks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "music_list_tracksArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "f75684d5-4b9b-4fbb-b0f3-607b9b55d7af",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9ae97340813f234f",
+              "tool_name": "music_list_tracks"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:38:18.216382+00:00",
+              "tool_call_id": "chatcmpl-tool-b607fa2c94edf74a",
+              "tool_name": "music_list_tracks"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "music_list_tracks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "music_list_tracksArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0991/train_0991.wav",
+        "sample_id": "train_0991"
+      },
+      "trace_id": "cea6682d-b5b2-4b2c-a032-2651c35116ae",
+      "error": "RuntimeError: Tool 'door_lock_list_locks' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "a8637b1f-448d-4de1-9976-278fcf05877f",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b30b32183e8757ef",
+              "tool_name": "door_lock_list_locks"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "door_lock_list_locks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "door_lock_list_locksArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "c5a32f2f-ae7a-4072-8c5f-54dd38f61d08",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b1d2d62ce29ab605",
+              "tool_name": "door_lock_list_locks"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:38:12.669026+00:00",
+              "tool_call_id": "chatcmpl-tool-b30b32183e8757ef",
+              "tool_name": "door_lock_list_locks"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "door_lock_list_locks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "door_lock_list_locksArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0990/train_0990.wav",
+        "sample_id": "train_0990"
+      },
+      "trace_id": "ee31323f-3de3-49ea-afb6-261e348c834d",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "4f364c3d-5fd8-413c-b030-104785d8bcd8",
+          "tool_calls": [
+            {
+              "args": "{\"query\": \"Ba\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9775477717db9f39",
+              "tool_name": "contacts_search"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "contacts_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "query": {
+                    "default": null,
+                    "description": "Tên, quan hệ (mẹ, vợ, sếp) hoặc số điện thoại",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "title": "contacts_searchArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "c8406bd1-26ab-4dd6-8a92-2af3ff5f55b8",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-92adca8401be6866",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "c809147f-89d4-4806-9bb4-ea264156caac",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-aed6d88510b0bcfd",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:38:06.070628+00:00",
+              "tool_call_id": "chatcmpl-tool-92adca8401be6866",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0986/train_0986.wav",
+        "sample_id": "train_0986"
+      },
+      "trace_id": "ca07d801-9a34-47b9-9675-081185dcee9e",
+      "error": "RuntimeError: Tool 'learning_list_courses' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "32bfe5ad-b770-430c-96e5-655547adb24b",
+          "tool_calls": [
+            {
+              "args": "{\"course_id\": \"course_1\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-be28fa8354410abb",
+              "tool_name": "learning_list_courses"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "learning_list_courses",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "learning_list_coursesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "075fcea8-bdac-4b06-a076-3f32fdd0dec4",
+          "tool_calls": [
+            {
+              "args": "{\"course_id\": \"course_1\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8a79320b48b2ad4e",
+              "tool_name": "learning_list_courses"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "course_1",
+                  "loc": [
+                    "course_id"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:37:50.170704+00:00",
+              "tool_call_id": "chatcmpl-tool-be28fa8354410abb",
+              "tool_name": "learning_list_courses"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "learning_list_courses",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "learning_list_coursesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0984/train_0984.wav",
+        "sample_id": "train_0984"
+      },
+      "trace_id": "d79780eb-7050-4b72-a2e8-3f25639946cc",
+      "error": "RuntimeError: Tool 'robot_vacuum_stop' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "add508cf-79c2-49ce-a4a7-9cee4f0061c1",
+          "tool_calls": [
+            {
+              "args": "{\"rooms\": \"[\\\"phòng ngủ nhỏ\\\", \\\"phòng ngủ lớn\\\"]\", \"mode\": \"vacuum\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b921557fe7eb66a3",
+              "tool_name": "robot_vacuum_stop"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "robot_vacuum_stop",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "robot_vacuum_stopArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "07bfd442-f950-4752-8576-2c25874ef5bd",
+          "tool_calls": [
+            {
+              "args": "{\"rooms\": \"[]\", \"mode\": \"vacuum\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a69147f88c8671b2",
+              "tool_name": "robot_vacuum_stop"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "[\"phòng ngủ nhỏ\", \"phòng ngủ lớn\"]",
+                  "loc": [
+                    "rooms"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                },
+                {
+                  "input": "vacuum",
+                  "loc": [
+                    "mode"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:37:40.197591+00:00",
+              "tool_call_id": "chatcmpl-tool-b921557fe7eb66a3",
+              "tool_name": "robot_vacuum_stop"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "robot_vacuum_stop",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "robot_vacuum_stopArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0975/train_0975.wav",
+        "sample_id": "train_0975"
+      },
+      "trace_id": "a85fac9f-7431-444e-9355-12ab2f9f7264",
+      "error": "RuntimeError: Tool 'shopping_list_get' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "6e37bd2b-2576-4f1a-8475-cbb4f8c0c97a",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-819fd6ca931ab9b0",
+              "tool_name": "shopping_list_get"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "shopping_list_get",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "shopping_list_getArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "9ce9266b-5187-4fd0-9461-25f2061413cd",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b8d557b1e0b58db6",
+              "tool_name": "shopping_list_get"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:37:14.901848+00:00",
+              "tool_call_id": "chatcmpl-tool-819fd6ca931ab9b0",
+              "tool_name": "shopping_list_get"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "shopping_list_get",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "shopping_list_getArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0969/train_0969.wav",
+        "sample_id": "train_0969"
+      },
+      "trace_id": "e8805f27-cb62-4279-b78d-50b24dff56a2",
+      "error": "RuntimeError: Tool 'home_automation_list_rules' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "62055314-bed8-4550-a7a2-2c6eaa0f6a8c",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-84dec09dcf08b10a",
+              "tool_name": "home_automation_list_rules"
+            },
+            {
+              "args": "{\"arguments\": \"{\\\"missed_only\\\": true}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-92ca252cec19984f",
+              "tool_name": "phone_recent_calls"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "home_automation_list_rules",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "home_automation_list_rulesArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "phone_recent_calls",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "missed_only": {
+                    "default": null,
+                    "title": "Missed Only",
+                    "type": "boolean"
+                  }
+                },
+                "title": "phone_recent_callsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "5a0f95fb-f996-4a08-9f78-80de12bbd9ad",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-864e2fcae87243f4",
+              "tool_name": "home_automation_list_rules"
+            },
+            {
+              "args": "{\"arguments\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-865c36029e3c197a",
+              "tool_name": "phone_recent_calls"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:36:54.975898+00:00",
+              "tool_call_id": "chatcmpl-tool-84dec09dcf08b10a",
+              "tool_name": "home_automation_list_rules"
+            },
+            {
+              "content": [
+                {
+                  "input": "{\"missed_only\": true}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:36:54.977299+00:00",
+              "tool_call_id": "chatcmpl-tool-92ca252cec19984f",
+              "tool_name": "phone_recent_calls"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "home_automation_list_rules",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "home_automation_list_rulesArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "phone_recent_calls",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "missed_only": {
+                    "default": null,
+                    "title": "Missed Only",
+                    "type": "boolean"
+                  }
+                },
+                "title": "phone_recent_callsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0967/train_0967.wav",
+        "sample_id": "train_0967"
+      },
+      "trace_id": "8ad319e6-3da2-470e-ba5f-185971a6f579",
+      "error": "RuntimeError: Tool 'learning_list_courses' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "117c3b1c-929c-4889-a3a5-c7cd40b9b8d3",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8675a57a8ded3af4",
+              "tool_name": "learning_list_courses"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "learning_list_courses",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "learning_list_coursesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "6b681cd4-ed72-4851-8d44-8e2f83fff703",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8ea2223ffae5fcca",
+              "tool_name": "learning_list_courses"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:36:47.985918+00:00",
+              "tool_call_id": "chatcmpl-tool-8675a57a8ded3af4",
+              "tool_name": "learning_list_courses"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "learning_list_courses",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "learning_list_coursesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0919/train_0919.wav",
+        "sample_id": "train_0919"
+      },
+      "trace_id": "ce7df768-68a7-4d11-99cc-6d3714b38cf5",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "8384e662-46dd-4a83-a3db-ccb2ddd9dcec",
+          "tool_calls": [
+            {
+              "args": "{\"query\": \"Bi\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-94019b7abd091319",
+              "tool_name": "contacts_search"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "contacts_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "query": {
+                    "default": null,
+                    "description": "Tên, quan hệ (mẹ, vợ, sếp) hoặc số điện thoại",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "title": "contacts_searchArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "9b608387-9fad-4999-ae73-347126de66b5",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8ff4032ff89592ec",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "f0587243-17c3-4efc-aa46-87f81f5cae61",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-889cafd1c6b75102",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:33:02.739301+00:00",
+              "tool_call_id": "chatcmpl-tool-8ff4032ff89592ec",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0912/train_0912.wav",
+        "sample_id": "train_0912"
+      },
+      "trace_id": "499e9cc9-030c-4730-a6cc-b6a19fc6eb3b",
+      "error": "RuntimeError: Tool 'door_lock_list_locks' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "4cd98501-6d3e-422c-9962-49d99bcb6819",
+          "tool_calls": [
+            {
+              "args": "{\"since\": \"2026-09-21T09:00:00+07:00\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a7ef12fb5c190cf5",
+              "tool_name": "home_security_list_alerts"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "home_security_list_alerts",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "since": {
+                    "default": null,
+                    "description": "Chỉ lấy cảnh báo từ thời điểm này, ISO-8601 đầy đủ giây và offset múi giờ, ví dụ 2026-11-11T05:30:00+07:00",
+                    "format": "date-time",
+                    "title": "Since",
+                    "type": "string"
+                  }
+                },
+                "title": "home_security_list_alertsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "454c753c-e99d-449b-a168-489993c2d50e",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-bd79f1eabcad85c4",
+              "tool_name": "door_lock_list_locks"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "door_lock_list_locks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "door_lock_list_locksArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "36799cdf-e985-4018-b065-bdf8fc60eb18",
+          "tool_calls": [],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:32:50.811547+00:00",
+              "tool_call_id": "chatcmpl-tool-bd79f1eabcad85c4",
+              "tool_name": "door_lock_list_locks"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "door_lock_list_locks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "door_lock_list_locksArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "cc2f22dd-a9fe-451a-a889-92ef21c55c43",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a5a19574aa4f3e4f",
+              "tool_name": "door_lock_list_locks"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:32:50.811547+00:00",
+              "tool_call_id": "chatcmpl-tool-bd79f1eabcad85c4",
+              "tool_name": "door_lock_list_locks"
+            },
+            {
+              "content": "Please return text or call a tool.",
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:32:51.796036+00:00",
+              "tool_call_id": "pyd_ai_5a67bcf3377c4dbdade70496e8ab7594",
+              "tool_name": null
+            }
+          ],
+          "schemas": [
+            {
+              "name": "door_lock_list_locks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "door_lock_list_locksArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "4c32d4c9-aa6d-4e80-86ad-954b0a038702",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b847047589760c2e",
+              "tool_name": "door_lock_list_locks"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:32:50.811547+00:00",
+              "tool_call_id": "chatcmpl-tool-bd79f1eabcad85c4",
+              "tool_name": "door_lock_list_locks"
+            },
+            {
+              "content": "Please return text or call a tool.",
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:32:51.796036+00:00",
+              "tool_call_id": "pyd_ai_5a67bcf3377c4dbdade70496e8ab7594",
+              "tool_name": null
+            },
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:32:54.199499+00:00",
+              "tool_call_id": "chatcmpl-tool-a5a19574aa4f3e4f",
+              "tool_name": "door_lock_list_locks"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "door_lock_list_locks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "door_lock_list_locksArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0876/train_0876.wav",
+        "sample_id": "train_0876"
+      },
+      "trace_id": "423d90f0-be56-4a5b-a69b-42bb0a65d5f6",
+      "error": "RuntimeError: Tool 'music_list_tracks' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "556062cd-7437-4fc3-8e3f-71f6952de14c",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9eae097899935428",
+              "tool_name": "music_list_tracks"
+            },
+            {
+              "args": "{\"query\": \"Chuyện Nghề\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-92691ee301dab095",
+              "tool_name": "podcast_radio_search"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "music_list_tracks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "music_list_tracksArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "podcast_radio_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "query": {
+                    "description": "Tên kênh, tên tập, chủ đề hoặc tên đài",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "query"
+                ],
+                "title": "podcast_radio_searchArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "9eac03b5-32a2-4af2-93ec-597dd4b66a1a",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-accbc31c93e25a15",
+              "tool_name": "music_list_tracks"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:31:55.674040+00:00",
+              "tool_call_id": "chatcmpl-tool-9eae097899935428",
+              "tool_name": "music_list_tracks"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "music_list_tracks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "music_list_tracksArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0826/train_0826.wav",
+        "sample_id": "train_0826"
+      },
+      "trace_id": "73afb38c-8eda-421c-8bb5-7fd304f14d65",
+      "error": "RuntimeError: Tool 'notes_list' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "955c688e-7f8d-4b4c-bb21-36a9bec548d1",
+          "tool_calls": [
+            {
+              "args": "{\"date_from\": \"2026-10-05\", \"date_to\": \"2026-10-05\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-bbe32546b6d8e63a",
+              "tool_name": "calendar_list_events"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "calendar_list_events",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "date_from": {
+                    "default": null,
+                    "description": "YYYY-MM-DD, ví dụ 2026-11-29",
+                    "title": "Date From",
+                    "type": "string"
+                  },
+                  "date_to": {
+                    "default": null,
+                    "description": "YYYY-MM-DD, ví dụ 2026-11-29",
+                    "title": "Date To",
+                    "type": "string"
+                  }
+                },
+                "title": "calendar_list_eventsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "2e1bb676-4f9c-4d5c-b257-d74851685d2d",
+          "tool_calls": [
+            {
+              "args": "{\"date_from\": \"2026-10-05\", \"date_to\": \"2026-10-10\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-97185721ddc90bcd",
+              "tool_name": "calendar_list_events"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "calendar_list_events",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "date_from": {
+                    "default": null,
+                    "description": "YYYY-MM-DD, ví dụ 2026-11-29",
+                    "title": "Date From",
+                    "type": "string"
+                  },
+                  "date_to": {
+                    "default": null,
+                    "description": "YYYY-MM-DD, ví dụ 2026-11-29",
+                    "title": "Date To",
+                    "type": "string"
+                  }
+                },
+                "title": "calendar_list_eventsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "a42d7a06-ced5-4c46-8d47-5f09ca8938e1",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-ba6fc2149b58534e",
+              "tool_name": "notes_list"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "notes_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "notes_listArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "79642c0d-67f3-4e29-bbaa-7d8887c785e3",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-ac946487ce9e598f",
+              "tool_name": "notes_list"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:30:38.193664+00:00",
+              "tool_call_id": "chatcmpl-tool-ba6fc2149b58534e",
+              "tool_name": "notes_list"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "notes_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "notes_listArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0794/train_0794.wav",
+        "sample_id": "train_0794"
+      },
+      "trace_id": "64aa35dc-8dbd-40b3-bca5-1019abf3d29c",
+      "error": "RuntimeError: Tool 'door_lock_list_locks' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "b866aab0-90d2-4810-9887-83e6bcc19cfc",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b74fba626f014ccb",
+              "tool_name": "door_lock_list_locks"
+            },
+            {
+              "args": "{\"query\": \"Toàn\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-841f9cef52e7399e",
+              "tool_name": "contacts_search"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "door_lock_list_locks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "door_lock_list_locksArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "contacts_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "query": {
+                    "default": null,
+                    "description": "Tên, quan hệ (mẹ, vợ, sếp) hoặc số điện thoại",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "title": "contacts_searchArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "8899ee3f-6f3f-4c2f-8b94-75ebc2548cfa",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b8a422db3749619d",
+              "tool_name": "door_lock_list_locks"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:29:40.407790+00:00",
+              "tool_call_id": "chatcmpl-tool-b74fba626f014ccb",
+              "tool_name": "door_lock_list_locks"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "door_lock_list_locks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "door_lock_list_locksArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0782/train_0782.wav",
+        "sample_id": "train_0782"
+      },
+      "trace_id": "0ff40299-dd7f-4a67-b77b-24df987c3853",
+      "error": "RuntimeError: Tool 'door_lock_list_locks' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "6538b083-3429-44b7-9dd7-ad4f0fd9ae27",
+          "tool_calls": [
+            {
+              "args": "{\"location\": \"phòng khách\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9bc47cd397f3e11a",
+              "tool_name": "home_security_get_camera"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "home_security_get_camera",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "location": {
+                    "default": null,
+                    "title": "Location",
+                    "type": "string",
+                    "x-match": "fuzzy"
+                  }
+                },
+                "title": "home_security_get_cameraArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "68ae3b9a-0921-4b8b-8e56-97bc36c55e2e",
+          "tool_calls": [],
+          "retries": [],
+          "schemas": []
+        },
+        {
+          "run_id": "1ffea436-7177-4c62-9269-375a084e5fd1",
+          "tool_calls": [
+            {
+              "args": "{\"lock_id\": \"ban_cong_phong_khach\", \"locked\": \"False\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-90369b7da42c17be",
+              "tool_name": "door_lock_list_locks"
+            }
+          ],
+          "retries": [
+            {
+              "content": "Please return text or call a tool.",
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:28:59.738437+00:00",
+              "tool_call_id": "pyd_ai_c70939ea6c1c4e0ca5ae0c1af3df3dd2",
+              "tool_name": null
+            }
+          ],
+          "schemas": [
+            {
+              "name": "door_lock_list_locks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "door_lock_list_locksArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "d7a270d5-18fe-4e30-b675-5d1d99371cd9",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b72260557eb89a8c",
+              "tool_name": "door_lock_list_locks"
+            }
+          ],
+          "retries": [
+            {
+              "content": "Please return text or call a tool.",
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:28:59.738437+00:00",
+              "tool_call_id": "pyd_ai_c70939ea6c1c4e0ca5ae0c1af3df3dd2",
+              "tool_name": null
+            },
+            {
+              "content": [
+                {
+                  "input": "ban_cong_phong_khach",
+                  "loc": [
+                    "lock_id"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                },
+                {
+                  "input": "False",
+                  "loc": [
+                    "locked"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:29:02.488763+00:00",
+              "tool_call_id": "chatcmpl-tool-90369b7da42c17be",
+              "tool_name": "door_lock_list_locks"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "door_lock_list_locks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "door_lock_list_locksArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0707/train_0707.wav",
+        "sample_id": "train_0707"
+      },
+      "trace_id": "5ffb62ab-ddc7-4968-a083-85eddf915b65",
+      "error": "RuntimeError: Tool 'video_meeting_list_meetings' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "fea707a1-49ae-4810-a30d-2d6a68d974ea",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a9cade60517085a6",
+              "tool_name": "video_meeting_list_meetings"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "video_meeting_list_meetings",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "video_meeting_list_meetingsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "fa1f64d3-6a26-4c07-9200-f7ea8284c3b0",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b2fc65938a2070c4",
+              "tool_name": "video_meeting_list_meetings"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:26:10.282363+00:00",
+              "tool_call_id": "chatcmpl-tool-a9cade60517085a6",
+              "tool_name": "video_meeting_list_meetings"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "video_meeting_list_meetings",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "video_meeting_list_meetingsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0703/train_0703.wav",
+        "sample_id": "train_0703"
+      },
+      "trace_id": "f5ceeeb9-ab6f-48ad-b4ed-8196391e9021",
+      "error": "RuntimeError: Tool 'music_list_tracks' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "ff884561-8fe2-4e2a-b26f-1c5e7ff99511",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8f0cc4dc3a54b722",
+              "tool_name": "music_list_tracks"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "music_list_tracks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "music_list_tracksArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "fab79dc6-1677-4cdf-8814-35a34e0052e6",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8e509ad08b33f872",
+              "tool_name": "music_list_tracks"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:25:41.711678+00:00",
+              "tool_call_id": "chatcmpl-tool-8f0cc4dc3a54b722",
+              "tool_name": "music_list_tracks"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "music_list_tracks",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "music_list_tracksArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0692/train_0692.wav",
+        "sample_id": "train_0692"
+      },
+      "trace_id": "29282373-4471-442c-b735-b54c1ef991da",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "89227b05-6648-43c6-a0a3-a9faa36b5891",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-bd43e07df8138016",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "77b12686-83bc-4a58-95cd-ac03896d49be",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8a0bde6e5c81d1fa",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:25:11.447618+00:00",
+              "tool_call_id": "chatcmpl-tool-bd43e07df8138016",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0678/train_0678.wav",
+        "sample_id": "train_0678"
+      },
+      "trace_id": "c09385b0-a7ca-476f-8cee-bd5d86c388b8",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "066fa329-4ce0-49d3-aad3-b468c12b1fe9",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-abc0fb4c6df51f87",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "361d8053-49be-4163-90a1-a5061ea2a709",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"null\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9c57d0210a9336ef",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:24:37.982275+00:00",
+              "tool_call_id": "chatcmpl-tool-abc0fb4c6df51f87",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0605/train_0605.wav",
+        "sample_id": "train_0605"
+      },
+      "trace_id": "1c836973-c5c1-4e06-9024-d23917ffbb1b",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "163ce5d7-d191-4855-8c2f-3cc857d65c52",
+          "tool_calls": [
+            {
+              "args": "{\"query\": \"Minh\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-beccde514e74e751",
+              "tool_name": "contacts_search"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "contacts_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "query": {
+                    "default": null,
+                    "description": "Tên, quan hệ (mẹ, vợ, sếp) hoặc số điện thoại",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "title": "contacts_searchArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "348a742e-6688-442b-ac10-6e3a6121ea49",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a536d08e6b7708aa",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "73c7359d-6680-47fa-83d6-12d020ce2e9e",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-951ae0767cd75d70",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:23:00.665467+00:00",
+              "tool_call_id": "chatcmpl-tool-a536d08e6b7708aa",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0587/train_0587.wav",
+        "sample_id": "train_0587"
+      },
+      "trace_id": "1cc4c92d-857a-45dd-bdbd-5ca5824010fc",
+      "error": "RuntimeError: Tool 'subscriptions_list' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "60cd4925-c6dd-4b8c-b629-7e5b4e605e86",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-985e63ed7c221586",
+              "tool_name": "subscriptions_list"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "subscriptions_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "subscriptions_listArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "1aa0581a-3dd6-420d-a411-1d93250a6225",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-956275c762a9885d",
+              "tool_name": "subscriptions_list"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:22:37.858334+00:00",
+              "tool_call_id": "chatcmpl-tool-985e63ed7c221586",
+              "tool_name": "subscriptions_list"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "subscriptions_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "subscriptions_listArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0570/train_0570.wav",
+        "sample_id": "train_0570"
+      },
+      "trace_id": "4f4617a1-99c1-458b-8607-260176f52372",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "f567f7f4-2834-4ef1-8ba2-d8d7f2a29a2a",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a33954cc81e7db8d",
+              "tool_name": "chat_ott_list_chats"
+            },
+            {
+              "args": "{\"query\": \"Phượng\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a16f8c0b686e6f90",
+              "tool_name": "contacts_search"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "contacts_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "query": {
+                    "default": null,
+                    "description": "Tên, quan hệ (mẹ, vợ, sếp) hoặc số điện thoại",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "title": "contacts_searchArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "5fd93d9c-8830-4a6d-85c1-a6a9f0246606",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-856f983eff96a0e8",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:22:15.574820+00:00",
+              "tool_call_id": "chatcmpl-tool-a33954cc81e7db8d",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0545/train_0545.wav",
+        "sample_id": "train_0545"
+      },
+      "trace_id": "e296ba4b-58c2-422b-8bb4-d728d083b0ea",
+      "error": "RuntimeError: Tool 'household_chores_list_chores' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "c004e2ba-f59a-43f8-9528-7aa0eff301bc",
+          "tool_calls": [
+            {
+              "args": "{\"type\": \"dishwasher\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9f31ad742f9e26d6",
+              "tool_name": "appliances_list"
+            },
+            {
+              "args": "{\"type\": \"dishwasher\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-bf8baeebcab16715",
+              "tool_name": "household_chores_list_chores"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "appliances_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "washer",
+                      "dishwasher",
+                      "dryer",
+                      "rice_cooker",
+                      "microwave",
+                      "air_purifier"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "appliances_listArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "household_chores_list_chores",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "household_chores_list_choresArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "cba32bf6-f2bc-46c0-9f2b-4e89dc538008",
+          "tool_calls": [
+            {
+              "args": "{\"type\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-acb5e668980898a2",
+              "tool_name": "household_chores_list_chores"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "dishwasher",
+                  "loc": [
+                    "type"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:21:41.634001+00:00",
+              "tool_call_id": "chatcmpl-tool-bf8baeebcab16715",
+              "tool_name": "household_chores_list_chores"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "household_chores_list_chores",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "household_chores_list_choresArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0503/train_0503.wav",
+        "sample_id": "train_0503"
+      },
+      "trace_id": "5893ac5a-939b-43cc-863c-a51541014bd0",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "628f74d4-46a1-4411-92b2-6cdaf01cffee",
+          "tool_calls": [
+            {
+              "args": "{\"query\": \"Dung\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-81771faeacb5e77d",
+              "tool_name": "contacts_search"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "contacts_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "query": {
+                    "default": null,
+                    "description": "Tên, quan hệ (mẹ, vợ, sếp) hoặc số điện thoại",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "title": "contacts_searchArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "661d84f2-b115-4df3-bc37-5f7447fc9cd1",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b0caeb54ce47c6f5",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "e0de4ec2-b74c-4447-80cc-46d74a1635df",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9772b11c547c90e6",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:20:25.555339+00:00",
+              "tool_call_id": "chatcmpl-tool-b0caeb54ce47c6f5",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0422/train_0422.wav",
+        "sample_id": "train_0422"
+      },
+      "trace_id": "3ae0ed6e-5ac2-40de-8769-55ff190d3008",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "c133eef5-c4b3-49fd-b390-95b21e13c819",
+          "tool_calls": [
+            {
+              "args": "{\"account_id\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-90c7440ac734a78d",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "args": "{\"account_id\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-87a35b07d2a3aad3",
+              "tool_name": "banking_list_beneficiaries"
+            },
+            {
+              "args": "{\"type\": \"internet\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9aec5a0acd2b5f25",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"electricity\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-810436d0b35ab4f9",
+              "tool_name": "bill_payment_list_bills"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "bill_payment_list_bills",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "electricity",
+                      "water",
+                      "internet",
+                      "tv",
+                      "tuition",
+                      "phone"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "bill_payment_list_billsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_list_beneficiaries",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_list_beneficiariesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "c0299b2a-ac2c-4b94-ab78-868e169581ad",
+          "tool_calls": [
+            {
+              "args": "{\"account_id\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a727b2e551e393ae",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "args": "{\"account_id\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-832084a1a6f3f7da",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "account_id"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:19:17.968392+00:00",
+              "tool_call_id": "chatcmpl-tool-90c7440ac734a78d",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "account_id"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:19:17.969109+00:00",
+              "tool_call_id": "chatcmpl-tool-87a35b07d2a3aad3",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_list_beneficiaries",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_list_beneficiariesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0421/train_0421.wav",
+        "sample_id": "train_0421"
+      },
+      "trace_id": "86400262-4f93-4694-b769-a0306a607e98",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "d362daba-201d-4b0a-9935-c36100a7df8c",
+          "tool_calls": [
+            {
+              "args": "{\"type\": \"sjc\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-ad8e3afe2b346c73",
+              "tool_name": "gold_price_get_price"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "gold_price_get_price",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "sjc",
+                      "ring",
+                      "world"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "gold_price_get_priceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "ded12207-1299-48b5-bf4c-2b049ac537eb",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9366c10faaa4a87f",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b5cf54a7698f7d21",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_list_beneficiaries",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_list_beneficiariesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "89adb39e-3716-44bc-8b5d-efbba147a610",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8c3c39737f4304bd",
+              "tool_name": "banking_get_balance"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:19:09.080836+00:00",
+              "tool_call_id": "chatcmpl-tool-9366c10faaa4a87f",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:19:09.081927+00:00",
+              "tool_call_id": "chatcmpl-tool-b5cf54a7698f7d21",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_list_beneficiaries",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_list_beneficiariesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0368/train_0368.wav",
+        "sample_id": "train_0368"
+      },
+      "trace_id": "ef4c3c88-d9db-4dac-8e1f-10dc55f0db0f",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "bf56188e-5306-401d-a833-b58067271e39",
+          "tool_calls": [
+            {
+              "args": "{\"query\": \"Tuấn anh trai\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b449b13b32bb65e6",
+              "tool_name": "contacts_search"
+            },
+            {
+              "args": "{\"query\": \"Bác Ba\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a1b12ebd8652f3dd",
+              "tool_name": "contacts_search"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-895e1d61bffc6687",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "contacts_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "query": {
+                    "default": null,
+                    "description": "Tên, quan hệ (mẹ, vợ, sếp) hoặc số điện thoại",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "title": "contacts_searchArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "d6595ab5-eca7-4c1b-b855-6531643e055e",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-ac5c3f92e0073f83",
+              "tool_name": "ewallet_get_balance"
+            },
+            {
+              "args": "{\"query\": \"Tuấn anh trai\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-89eb00928e485fb7",
+              "tool_name": "contacts_search"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:17:59.898252+00:00",
+              "tool_call_id": "chatcmpl-tool-895e1d61bffc6687",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "contacts_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "query": {
+                    "default": null,
+                    "description": "Tên, quan hệ (mẹ, vợ, sếp) hoặc số điện thoại",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "title": "contacts_searchArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0361/train_0361.wav",
+        "sample_id": "train_0361"
+      },
+      "trace_id": "eb36eb60-efb4-4188-9dc2-34f8afaa184e",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "d5f0a905-6ce5-4d1f-aa60-6b3e38341145",
+          "tool_calls": [
+            {
+              "args": "{\"type\": \"electricity\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a4e450cbd679e652",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"internet\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a6602612f954f8ad",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a5b3af49d194d8e8",
+              "tool_name": "banking_get_balance"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "bill_payment_list_bills",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "electricity",
+                      "water",
+                      "internet",
+                      "tv",
+                      "tuition",
+                      "phone"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "bill_payment_list_billsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "ad8702d3-ae42-4ba4-b49e-cd2c650fd713",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8edad23bdead179e",
+              "tool_name": "banking_get_balance"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:17:39.206276+00:00",
+              "tool_call_id": "chatcmpl-tool-a5b3af49d194d8e8",
+              "tool_name": "banking_get_balance"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0338/train_0338.wav",
+        "sample_id": "train_0338"
+      },
+      "trace_id": "28654d2d-b92d-474d-9b6e-1282209d15d1",
+      "error": "RuntimeError: Tool 'food_delivery_list_restaurants' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "fe3beffb-a2ff-48e9-aeab-ddb64880e6f0",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-992c041adf50dd58",
+              "tool_name": "food_delivery_list_restaurants"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-953ff1e3642cc217",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "food_delivery_list_restaurants",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "food_delivery_list_restaurantsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "42289f93-8611-4bdd-9534-b197633f67d9",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-873cc2bbd45f6a26",
+              "tool_name": "food_delivery_list_restaurants"
+            },
+            {
+              "args": "{\"arguments\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-92c9bb7cf0118766",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:17:03.835260+00:00",
+              "tool_call_id": "chatcmpl-tool-992c041adf50dd58",
+              "tool_name": "food_delivery_list_restaurants"
+            },
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:17:03.836183+00:00",
+              "tool_call_id": "chatcmpl-tool-953ff1e3642cc217",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "food_delivery_list_restaurants",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "food_delivery_list_restaurantsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0332/train_0332.wav",
+        "sample_id": "train_0332"
+      },
+      "trace_id": "f01f19ba-94cc-4aad-a9b9-ed29ed134c76",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "c24cb3ab-e40f-47d5-9263-8afcf333359a",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9a25cac5fd709fc3",
+              "tool_name": "ewallet_get_balance"
+            },
+            {
+              "args": "{\"type\": \"internet\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b9e241f0287a0870",
+              "tool_name": "bill_payment_list_bills"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "bill_payment_list_bills",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "electricity",
+                      "water",
+                      "internet",
+                      "tv",
+                      "tuition",
+                      "phone"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "bill_payment_list_billsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "82cc0572-41f9-4557-92c8-d438e1886f35",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a0ddc6cb6e746da7",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:16:38.338861+00:00",
+              "tool_call_id": "chatcmpl-tool-9a25cac5fd709fc3",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0303/train_0303.wav",
+        "sample_id": "train_0303"
+      },
+      "trace_id": "31a8cfb6-7104-491a-835b-c10770cb2495",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "84676b2d-de79-4409-b9e3-521150d5e5d2",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b2990d559d951d8f",
+              "tool_name": "ewallet_get_balance"
+            },
+            {
+              "args": "{\"type\": \"internet\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-993bef5c230bda74",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"query\": \"Sếp Dũng\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-86b81a7eb77c928e",
+              "tool_name": "contacts_search"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "bill_payment_list_bills",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "electricity",
+                      "water",
+                      "internet",
+                      "tv",
+                      "tuition",
+                      "phone"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "bill_payment_list_billsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "contacts_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "query": {
+                    "default": null,
+                    "description": "Tên, quan hệ (mẹ, vợ, sếp) hoặc số điện thoại",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "title": "contacts_searchArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "6f3bfe02-6d76-4c88-8c76-eb985bc93dce",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-bd26666dda88ac71",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:15:55.058218+00:00",
+              "tool_call_id": "chatcmpl-tool-b2990d559d951d8f",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0299/train_0299.wav",
+        "sample_id": "train_0299"
+      },
+      "trace_id": "dfe95ea3-adb0-4e8e-b8fd-8a7350f446e9",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "702eb544-9d49-4081-bf57-69542e169d3b",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-869bf022a2445a5a",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9c4d68f9990338a1",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_list_beneficiaries",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_list_beneficiariesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "1eb46385-aa50-4948-b7a0-abbe78185453",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-bc7d5fa5e57abad4",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8561f0d60c54957c",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:15:39.246469+00:00",
+              "tool_call_id": "chatcmpl-tool-869bf022a2445a5a",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:15:39.247249+00:00",
+              "tool_call_id": "chatcmpl-tool-9c4d68f9990338a1",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_list_beneficiaries",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_list_beneficiariesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0298/train_0298.wav",
+        "sample_id": "train_0298"
+      },
+      "trace_id": "1d5d665d-88f2-4927-bd69-194fb1edf606",
+      "error": "RuntimeError: Tool 'food_delivery_list_restaurants' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "89be5039-7d24-4a4b-833e-7ffd6a562968",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9f55e334d3196bf8",
+              "tool_name": "food_delivery_list_restaurants"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "food_delivery_list_restaurants",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "food_delivery_list_restaurantsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "1cd8bfe6-bdf9-40aa-8270-94f07646958c",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9f90e37f3c701198",
+              "tool_name": "food_delivery_list_restaurants"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:15:30.280055+00:00",
+              "tool_call_id": "chatcmpl-tool-9f55e334d3196bf8",
+              "tool_name": "food_delivery_list_restaurants"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "food_delivery_list_restaurants",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "food_delivery_list_restaurantsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0267/train_0267.wav",
+        "sample_id": "train_0267"
+      },
+      "trace_id": "c5d31908-443b-426c-9388-2addf80bbbeb",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "edd0a225-4e14-47dc-949a-d4e6ae6e1ad5",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-ae69b71f7bb7257f",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-aec3becb66f2dba5",
+              "tool_name": "banking_list_beneficiaries"
+            },
+            {
+              "args": "{\"type\": \"electricity\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-bb629a654d97fc0d",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"tv\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b0d68f4055cba56d",
+              "tool_name": "bill_payment_list_bills"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "bill_payment_list_bills",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "electricity",
+                      "water",
+                      "internet",
+                      "tv",
+                      "tuition",
+                      "phone"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "bill_payment_list_billsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_list_beneficiaries",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_list_beneficiariesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "83b20f3b-ade4-4f2d-aec2-cafa534c5144",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8cb6d53cd08a3e9e",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b6e858502dfb7836",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:15:07.518670+00:00",
+              "tool_call_id": "chatcmpl-tool-ae69b71f7bb7257f",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:15:07.519446+00:00",
+              "tool_call_id": "chatcmpl-tool-aec3becb66f2dba5",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_list_beneficiaries",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_list_beneficiariesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0259/train_0259.wav",
+        "sample_id": "train_0259"
+      },
+      "trace_id": "096b825f-6d49-49fd-806a-3c33e6d81271",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "70267c09-bfc1-447f-968f-4333f54eff39",
+          "tool_calls": [
+            {
+              "args": "{\"account_id\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9b249635ad5885e1",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "args": "{\"query\": \"Nguyễn Thị Lan\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a155791ebd62a137",
+              "tool_name": "contacts_search"
+            },
+            {
+              "args": "{\"query\": \"Phạm Hùng\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a815a4fa824f896c",
+              "tool_name": "contacts_search"
+            },
+            {
+              "args": "{\"type\": \"electricity\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-bc7bca5f45b2c777",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"tv\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-baf34adf00b5a956",
+              "tool_name": "bill_payment_list_bills"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "bill_payment_list_bills",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "electricity",
+                      "water",
+                      "internet",
+                      "tv",
+                      "tuition",
+                      "phone"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "bill_payment_list_billsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "contacts_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "query": {
+                    "default": null,
+                    "description": "Tên, quan hệ (mẹ, vợ, sếp) hoặc số điện thoại",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "title": "contacts_searchArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "6459d387-e7d1-4ce0-be5a-50fa9eaa29a5",
+          "tool_calls": [
+            {
+              "args": "{\"account_id\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-becb07a785b6a9d0",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "args": "{\"query\": \"Nguyễn Thị Lan\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b294b8bb233a2416",
+              "tool_name": "contacts_search"
+            },
+            {
+              "args": "{\"query\": \"Phạm Hùng\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a7597f00588f6dd7",
+              "tool_name": "contacts_search"
+            },
+            {
+              "args": "{\"type\": \"electricity\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b4ec69da30877281",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"tv\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-ab34daf69bae9f89",
+              "tool_name": "bill_payment_list_bills"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "account_id"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:14:35.058074+00:00",
+              "tool_call_id": "chatcmpl-tool-9b249635ad5885e1",
+              "tool_name": "banking_get_balance"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "bill_payment_list_bills",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "electricity",
+                      "water",
+                      "internet",
+                      "tv",
+                      "tuition",
+                      "phone"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "bill_payment_list_billsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "contacts_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "query": {
+                    "default": null,
+                    "description": "Tên, quan hệ (mẹ, vợ, sếp) hoặc số điện thoại",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "title": "contacts_searchArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0214/train_0214.wav",
+        "sample_id": "train_0214"
+      },
+      "trace_id": "4179af24-ee09-47d2-9b0b-04a463bde836",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "b8134178-6531-4540-a919-0d04d7c2649d",
+          "tool_calls": [
+            {
+              "args": "{\"type\": \"internet\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a794a70b27ee6896",
+              "tool_name": "bill_payment_list_bills"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "bill_payment_list_bills",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "electricity",
+                      "water",
+                      "internet",
+                      "tv",
+                      "tuition",
+                      "phone"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "bill_payment_list_billsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "c17a3d4e-68dc-409f-8186-5f3907762bf5",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9130916a55d72eca",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "e35d7760-dcc6-4021-b13e-22dcadd5059b",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-ad86daade4124e3b",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:13:22.366147+00:00",
+              "tool_call_id": "chatcmpl-tool-9130916a55d72eca",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0212/train_0212.wav",
+        "sample_id": "train_0212"
+      },
+      "trace_id": "c929a97e-3b68-4a97-8d9c-ddeba957a972",
+      "error": "RuntimeError: Tool 'food_delivery_list_restaurants' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "372e3598-e818-4e20-8080-a51ce1801d22",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-aaa874945f8dfe9a",
+              "tool_name": "food_delivery_list_restaurants"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "food_delivery_list_restaurants",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "food_delivery_list_restaurantsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "2b890073-1008-456f-8be3-795d73e1ff8c",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8d984c2e722aea09",
+              "tool_name": "food_delivery_list_restaurants"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:13:13.376917+00:00",
+              "tool_call_id": "chatcmpl-tool-aaa874945f8dfe9a",
+              "tool_name": "food_delivery_list_restaurants"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "food_delivery_list_restaurants",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "food_delivery_list_restaurantsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0211/train_0211.wav",
+        "sample_id": "train_0211"
+      },
+      "trace_id": "04249e15-8623-470b-ad8b-c934ae451b6a",
+      "error": "RuntimeError: Tool 'food_delivery_list_restaurants' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "bab13e46-36bf-4521-a8e2-16051cb13ad4",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-886ff7b41970dab0",
+              "tool_name": "food_delivery_list_restaurants"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9949b2c753479a16",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "food_delivery_list_restaurants",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "food_delivery_list_restaurantsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "2c0fc3a4-cd6f-49b1-82ff-a65cc7c0071f",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-92949363f3003b53",
+              "tool_name": "food_delivery_list_restaurants"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b3f076c52686ed52",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:13:06.561128+00:00",
+              "tool_call_id": "chatcmpl-tool-886ff7b41970dab0",
+              "tool_name": "food_delivery_list_restaurants"
+            },
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:13:06.562004+00:00",
+              "tool_call_id": "chatcmpl-tool-9949b2c753479a16",
+              "tool_name": "chat_ott_list_chats"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "food_delivery_list_restaurants",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "food_delivery_list_restaurantsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "chat_ott_list_chats",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "chat_ott_list_chatsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0197/train_0197.wav",
+        "sample_id": "train_0197"
+      },
+      "trace_id": "025f168a-a3b4-49bb-86a6-d9700a2b304f",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "b9183262-91d1-4906-a39e-761a297d1ff9",
+          "tool_calls": [
+            {
+              "args": "{\"date\": \"2026-11-23\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b472301e264d7219",
+              "tool_name": "reminders_list"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-856a2681f3ee535b",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b517544a4b06a6e2",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "reminders_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "date": {
+                    "default": null,
+                    "description": "YYYY-MM-DD, ví dụ 2026-11-29",
+                    "title": "Date",
+                    "type": "string"
+                  }
+                },
+                "title": "reminders_listArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_list_beneficiaries",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_list_beneficiariesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "27571493-6ad4-46ad-8783-04f450b60cf9",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-95920cc7be9a20f2",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9edaa78aeca90738",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:12:44.319302+00:00",
+              "tool_call_id": "chatcmpl-tool-856a2681f3ee535b",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:12:44.320014+00:00",
+              "tool_call_id": "chatcmpl-tool-b517544a4b06a6e2",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_list_beneficiaries",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_list_beneficiariesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0190/train_0190.wav",
+        "sample_id": "train_0190"
+      },
+      "trace_id": "2546608a-377f-46b5-908c-49f0bf3853f4",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "ee3a1309-c60f-4145-ad04-ae2e2edc2b14",
+          "tool_calls": [
+            {
+              "args": "{\"type\": \"electricity\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8900627088fbefea",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"water\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-909bb3499a23bebf",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"internet\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9039745b0934e3f6",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"tv\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-bbdcaa67e1bd78b9",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"tuition\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-ba7db8760e97515e",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"phone\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-92b1689279fa7484",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"account_id\": \"1\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-acaffe288d76455d",
+              "tool_name": "banking_get_balance"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "bill_payment_list_bills",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "electricity",
+                      "water",
+                      "internet",
+                      "tv",
+                      "tuition",
+                      "phone"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "bill_payment_list_billsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "cf1c4e2c-e953-467d-aa1f-540f278a7c69",
+          "tool_calls": [
+            {
+              "args": "{\"account_id\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9e715706ac16d7cf",
+              "tool_name": "banking_get_balance"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "1",
+                  "loc": [
+                    "account_id"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:12:17.660888+00:00",
+              "tool_call_id": "chatcmpl-tool-acaffe288d76455d",
+              "tool_name": "banking_get_balance"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0181/train_0181.wav",
+        "sample_id": "train_0181"
+      },
+      "trace_id": "18442e6e-1d5a-4db1-8776-9b453ecfe3d3",
+      "error": "RuntimeError: Tool 'alarm_list' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "354a15f6-c1f2-464d-a8bf-bfeba397a65e",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-839b107e85ffcacc",
+              "tool_name": "alarm_list"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "alarm_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "alarm_listArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "bba8d257-8a46-4363-a120-dc17f9f0ffe2",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9e830e652728a332",
+              "tool_name": "alarm_list"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:11:26.575613+00:00",
+              "tool_call_id": "chatcmpl-tool-839b107e85ffcacc",
+              "tool_name": "alarm_list"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "alarm_list",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "alarm_listArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0146/train_0146.wav",
+        "sample_id": "train_0146"
+      },
+      "trace_id": "a81e393f-c22d-43e1-86c8-8854f074930c",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "69c775b6-d2c7-4dd8-927b-e1499391396e",
+          "tool_calls": [
+            {
+              "args": "{\"type\": \"electricity\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9ebbff349f9b8b28",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"water\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-8b24515744b3b7b6",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"internet\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a485ef818d9d4376",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"tv\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-83733b416368284e",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"tuition\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-912fe11123900bd9",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"type\": \"phone\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a768d1099858d2f6",
+              "tool_name": "bill_payment_list_bills"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "bill_payment_list_bills",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "electricity",
+                      "water",
+                      "internet",
+                      "tv",
+                      "tuition",
+                      "phone"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "bill_payment_list_billsArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "a190b02a-9f6e-488f-a741-8bcba984dc65",
+          "tool_calls": [
+            {
+              "args": "{\"account_id\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b1e6dd13c0ba6d60",
+              "tool_name": "banking_get_balance"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "1c9aad5d-b168-4d32-9a10-799cf43d7008",
+          "tool_calls": [
+            {
+              "args": "{\"account_id\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9a3a6c70ddc1affb",
+              "tool_name": "banking_get_balance"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "",
+                  "loc": [
+                    "account_id"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:10:05.638069+00:00",
+              "tool_call_id": "chatcmpl-tool-b1e6dd13c0ba6d60",
+              "tool_name": "banking_get_balance"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0141/train_0141.wav",
+        "sample_id": "train_0141"
+      },
+      "trace_id": "d49d8c78-5aa1-46f1-afd8-a624248eafc8",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "0ab5cc87-59da-420d-bfc1-e3363e55e346",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b1a1d0c31e786dd9",
+              "tool_name": "ewallet_get_balance"
+            },
+            {
+              "args": "{\"type\": \"electricity\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-abb121d5593e94dd",
+              "tool_name": "bill_payment_list_bills"
+            },
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-ad9b92b5505cb2de",
+              "tool_name": "banking_get_balance"
+            },
+            {
+              "args": "{\"query\": \"Bác Ba hàng xóm\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-bca65b5bc74e808f",
+              "tool_name": "contacts_search"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "bill_payment_list_bills",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "electricity",
+                      "water",
+                      "internet",
+                      "tv",
+                      "tuition",
+                      "phone"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "bill_payment_list_billsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "contacts_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "query": {
+                    "default": null,
+                    "description": "Tên, quan hệ (mẹ, vợ, sếp) hoặc số điện thoại",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "title": "contacts_searchArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "e0c8957d-c4e1-40f5-a1a2-7f5d042c63a8",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b6a25733553f011d",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:09:48.585640+00:00",
+              "tool_call_id": "chatcmpl-tool-b1a1d0c31e786dd9",
+              "tool_name": "ewallet_get_balance"
+            },
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:09:49.042206+00:00",
+              "tool_call_id": "chatcmpl-tool-ad9b92b5505cb2de",
+              "tool_name": "banking_get_balance"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "banking_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0112/train_0112.wav",
+        "sample_id": "train_0112"
+      },
+      "trace_id": "256eead4-87cc-4eaa-99a7-e962873f3815",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "71ce35fc-0773-4db1-9845-f4792a4bf430",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9928eb0be9eadcc9",
+              "tool_name": "ewallet_get_balance"
+            },
+            {
+              "args": "{\"type\": \"internet\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-936ffe469d3281ae",
+              "tool_name": "bill_payment_list_bills"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "bill_payment_list_bills",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "electricity",
+                      "water",
+                      "internet",
+                      "tv",
+                      "tuition",
+                      "phone"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "bill_payment_list_billsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "1539b783-4b66-4cb6-ab13-39685e670717",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-bdde4f510a434347",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:08:34.619617+00:00",
+              "tool_call_id": "chatcmpl-tool-9928eb0be9eadcc9",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0107/train_0107.wav",
+        "sample_id": "train_0107"
+      },
+      "trace_id": "0410440b-f03d-405a-9632-210a7ee7899c",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "0dc2326e-4ee5-4c5d-af61-b24afa1d603d",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-9eab7dc8f427919e",
+              "tool_name": "ewallet_get_balance"
+            },
+            {
+              "args": "{\"type\": \"internet\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-954822d290421af6",
+              "tool_name": "bill_payment_list_bills"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "bill_payment_list_bills",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "electricity",
+                      "water",
+                      "internet",
+                      "tv",
+                      "tuition",
+                      "phone"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "bill_payment_list_billsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "16247a82-d49e-405d-a9fd-4027e3313116",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-bd9ce5dee253075c",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:07:59.993134+00:00",
+              "tool_call_id": "chatcmpl-tool-9eab7dc8f427919e",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0074/train_0074.wav",
+        "sample_id": "train_0074"
+      },
+      "trace_id": "db5d2f8b-7450-48c9-b141-a71e6c121504",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "7d292d01-e892-4425-ad5e-b4f86f4835d4",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b7efa4af23230cd0",
+              "tool_name": "ewallet_get_balance"
+            },
+            {
+              "args": "{\"type\": \"water\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b9b5119f8b5a955d",
+              "tool_name": "bill_payment_list_bills"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "bill_payment_list_bills",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "default": null,
+                    "enum": [
+                      "electricity",
+                      "water",
+                      "internet",
+                      "tv",
+                      "tuition",
+                      "phone"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "title": "bill_payment_list_billsArguments",
+                "type": "object"
+              }
+            },
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "45893417-ac84-4159-a68c-2cfbf5706b65",
+          "tool_calls": [
+            {
+              "args": "{\"arguments\": \"{}\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-ab605942d9d33746",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "{}",
+                  "loc": [
+                    "arguments"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:07:09.980064+00:00",
+              "tool_call_id": "chatcmpl-tool-b7efa4af23230cd0",
+              "tool_name": "ewallet_get_balance"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "ewallet_get_balance",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "ewallet_get_balanceArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": {
+        "audio": "audio/train_0032/train_0032.wav",
+        "sample_id": "train_0032"
+      },
+      "trace_id": "ed7e2966-0b2b-44c3-ab30-ca7de72422ec",
+      "error": "RuntimeError: Tool 'banking_list_beneficiaries' exceeded max retries count of 1",
+      "calls": [
+        {
+          "run_id": "c435d38c-8387-42ae-afc8-e16c328beba4",
+          "tool_calls": [
+            {
+              "args": "{\"query\": \"Trần Văn Tuấn\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-a8d6e929fad2185d",
+              "tool_name": "contacts_search"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "contacts_search",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "query": {
+                    "default": null,
+                    "description": "Tên, quan hệ (mẹ, vợ, sếp) hoặc số điện thoại",
+                    "title": "Query",
+                    "type": "string"
+                  }
+                },
+                "title": "contacts_searchArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "6a893896-b5de-4854-8c70-0fc103960fbe",
+          "tool_calls": [
+            {
+              "args": "{\"account_id\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-b93fcd6bb68347e8",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "retries": [],
+          "schemas": [
+            {
+              "name": "banking_list_beneficiaries",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_list_beneficiariesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        },
+        {
+          "run_id": "e78d9033-ac76-4eba-85b5-327e5fd68921",
+          "tool_calls": [
+            {
+              "args": "{\"account_id\": \"\"}",
+              "id": null,
+              "part_kind": "tool-call",
+              "tool_call_id": "chatcmpl-tool-99fd60e507753726",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "retries": [
+            {
+              "content": [
+                {
+                  "input": "",
+                  "loc": [
+                    "account_id"
+                  ],
+                  "msg": "Extra inputs are not permitted",
+                  "type": "extra_forbidden"
+                }
+              ],
+              "part_kind": "retry-prompt",
+              "timestamp": "2026-11-01T18:06:25.101204+00:00",
+              "tool_call_id": "chatcmpl-tool-b93fcd6bb68347e8",
+              "tool_name": "banking_list_beneficiaries"
+            }
+          ],
+          "schemas": [
+            {
+              "name": "banking_list_beneficiaries",
+              "schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "title": "banking_list_beneficiariesArguments",
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

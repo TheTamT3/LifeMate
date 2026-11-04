@@ -1,0 +1,18 @@
+{
+  "namespace": "1070a944-7a32-4f15-b258-9b8c741dcf1d",
+  "name": "lifemate-merged-retry-fixed-20261102-072105",
+  "sources": [
+    "018769bd-b6ea-465f-8a0d-3fd79d38a6b9",
+    "99bc0d7b-580d-4e24-889c-582c0662661b"
+  ],
+  "dataset_id": "82747bf1-87a5-4cea-8543-3d82f3e33866",
+  "excluded": [],
+  "source_counts": {
+    "018769bd-b6ea-465f-8a0d-3fd79d38a6b9": 230,
+    "99bc0d7b-580d-4e24-889c-582c0662661b": 70
+  },
+  "project_id": "5d88ade9-1411-4032-9252-81b441078d5c",
+  "expected_roots": 300,
+  "expected_nodes": 2249,
+  "expected_feedback": 600
+}

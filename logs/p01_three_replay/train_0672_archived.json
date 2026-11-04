@@ -1,0 +1,32 @@
+{
+  "id": "train_0672",
+  "mode": "archived_tools_only",
+  "tool_calls": [
+    {
+      "name": "phone.call",
+      "arguments": {
+        "contact_id": "c_01"
+      }
+    }
+  ],
+  "state_hash": "60a06e7405e2db252074b8de2751972cbb37ae6ab933d1479cbb1131a099bf18",
+  "reference_state_hash": "7813ff74f14c17f061ab0aae6fb152bdef2e0f3659e473694b859e0fcfe668ab",
+  "prefix_results_match_archive": true,
+  "state_matches_reference": false,
+  "llm_called": false,
+  "reference_calls": [
+    {
+      "name": "phone.call",
+      "arguments": {
+        "contact_id": "c_01"
+      }
+    },
+    {
+      "name": "notes.create",
+      "arguments": {
+        "title": "Cuộc gọi bác sĩ An",
+        "content": "Đã gọi bác sĩ An hỏi lịch tái khám"
+      }
+    }
+  ]
+}

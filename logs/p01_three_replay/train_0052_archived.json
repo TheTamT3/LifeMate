@@ -1,0 +1,47 @@
+{
+  "id": "train_0052",
+  "mode": "archived_tools_only",
+  "tool_calls": [
+    {
+      "name": "contacts.search",
+      "arguments": {
+        "query": "Minh"
+      }
+    },
+    {
+      "name": "alarm.create",
+      "arguments": {
+        "label": "6 rưỡi sáng mai",
+        "time": "2026-11-03T06:30:00+07:00"
+      }
+    }
+  ],
+  "state_hash": "b4ac881fb35258f9906a0e30c40c15a99174bf6b34b3d8ded34a39877d1fb6d4",
+  "reference_state_hash": "b4ac881fb35258f9906a0e30c40c15a99174bf6b34b3d8ded34a39877d1fb6d4",
+  "prefix_results_match_archive": true,
+  "state_matches_reference": true,
+  "llm_called": false,
+  "reference_calls": [
+    {
+      "name": "alarm.create",
+      "arguments": {
+        "time": "2026-11-03T06:30:00+07:00"
+      }
+    },
+    {
+      "name": "contacts.search",
+      "arguments": {
+        "query": "Minh"
+      }
+    },
+    {
+      "name": "sys.ask_missing_info",
+      "arguments": {
+        "tool_name": "phone.call",
+        "params": [
+          "contact_id"
+        ]
+      }
+    }
+  ]
+}

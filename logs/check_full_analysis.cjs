@@ -1,0 +1,44 @@
+const {chromium}=require('../.superpowers/review-browser-check/node_modules/playwright');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+(async()=>{
+ const browser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
+ try {
+  const page=await browser.newPage({viewport:{width:1800,height:1100}});
+  const errors=[],writes=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  page.on('request',r=>{if(!['GET','HEAD'].includes(r.method()))writes.push(r.method()+' '+r.url())});
+  const before=await(await page.request.get('http://127.0.0.1:8765/api/reviews')).json();
+  const data=await(await page.request.get('http://127.0.0.1:8765/api/analysis')).json();
+  assert.equal(data.records.length,300);assert.equal(new Set(data.records.map(r=>r.sample_id)).size,300);
+  assert.equal(Object.keys(data.groups).length,48);
+  await page.goto('http://127.0.0.1:8765/');
+  await page.getByRole('button',{name:'Phân tích lỗi',exact:true}).click();
+  await page.getByRole('heading',{name:'Agent lệch ở bước nào?'}).waitFor();
+  assert.equal(await page.locator('[data-analysis-group]').count(),48);
+  assert((await page.locator('.analysis-banner').innerText()).includes('300'));
+  const filter=page.getByRole('combobox',{name:'Lọc lớp phân tích',exact:true});
+  await filter.selectOption('S');assert.equal(await page.locator('[data-analysis-sample]').count(),61);
+  await filter.selectOption('U');assert.equal(await page.locator('[data-analysis-sample]').count(),3);
+  await filter.selectOption('');
+  const search=page.getByRole('textbox',{name:'Tìm nhóm hoặc sample',exact:true});
+  await search.fill('train_1412');
+  await page.locator('.analysis-detail h2').filter({hasText:'train_1412'}).waitFor();
+  assert((await page.locator('.analysis-detail').innerText()).includes('122100000'));
+  await page.locator('.analysis-detail details').filter({hasText:'Lượt 1 · reasoning'}).locator('summary').click();
+  assert((await page.locator('.analysis-detail').innerText()).includes('gold_price_get_price'));
+  await page.screenshot({path:'logs/full-analysis-live.png',fullPage:true});
+  await search.fill('train_1178');
+  await page.locator('.analysis-detail h2').filter({hasText:'train_1178'}).waitFor();
+  assert((await page.locator('.analysis-detail').innerText()).includes('available=true'));
+  await search.fill('train_0672');
+  await page.locator('.analysis-detail h2').filter({hasText:'train_0672'}).waitFor();
+  await page.getByRole('button',{name:'Mở trong Review sample →',exact:true}).click();
+  await page.getByRole('heading',{name:'train_0672',exact:true}).waitFor();
+  const after=await(await page.request.get('http://127.0.0.1:8765/api/reviews')).json();
+  assert.deepEqual(after,before);assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);
+  const result={records:300,groups:48,success_controls:61,unresolved:3,browser_errors:errors,write_requests:writes,reviews_unchanged:true};
+  fs.writeFileSync('review_data/error_grouping_full_20261102/browser_verification.json',JSON.stringify(result,null,2));
+  console.log(JSON.stringify(result));
+ }finally{await browser.close()}
+})().catch(e=>{console.error(e);process.exitCode=1});

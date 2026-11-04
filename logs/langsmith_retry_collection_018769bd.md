@@ -1,0 +1,76 @@
+# Retry errors ? experiment 018769bd
+
+Root runs: 300; retry error runs: 70; unique samples: 70; other runtime errors: 0.
+
+| Sample | Error | Trace |
+|---|---|---|
+| train_0032 | RuntimeError: Tool 'banking_list_beneficiaries' exceeded max retries count of 1 | ed7e2966-0b2b-44c3-ab30-ca7de72422ec |
+| train_0074 | RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1 | db5d2f8b-7450-48c9-b141-a71e6c121504 |
+| train_0107 | RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1 | 0410440b-f03d-405a-9632-210a7ee7899c |
+| train_0112 | RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1 | 256eead4-87cc-4eaa-99a7-e962873f3815 |
+| train_0141 | RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1 | d49d8c78-5aa1-46f1-afd8-a624248eafc8 |
+| train_0146 | RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1 | a81e393f-c22d-43e1-86c8-8854f074930c |
+| train_0181 | RuntimeError: Tool 'alarm_list' exceeded max retries count of 1 | 18442e6e-1d5a-4db1-8776-9b453ecfe3d3 |
+| train_0190 | RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1 | 2546608a-377f-46b5-908c-49f0bf3853f4 |
+| train_0197 | RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1 | 025f168a-a3b4-49bb-86a6-d9700a2b304f |
+| train_0211 | RuntimeError: Tool 'food_delivery_list_restaurants' exceeded max retries count of 1 | 04249e15-8623-470b-ad8b-c934ae451b6a |
+| train_0212 | RuntimeError: Tool 'food_delivery_list_restaurants' exceeded max retries count of 1 | c929a97e-3b68-4a97-8d9c-ddeba957a972 |
+| train_0214 | RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1 | 4179af24-ee09-47d2-9b0b-04a463bde836 |
+| train_0259 | RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1 | 096b825f-6d49-49fd-806a-3c33e6d81271 |
+| train_0267 | RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1 | c5d31908-443b-426c-9388-2addf80bbbeb |
+| train_0298 | RuntimeError: Tool 'food_delivery_list_restaurants' exceeded max retries count of 1 | 1d5d665d-88f2-4927-bd69-194fb1edf606 |
+| train_0299 | RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1 | dfe95ea3-adb0-4e8e-b8fd-8a7350f446e9 |
+| train_0303 | RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1 | 31a8cfb6-7104-491a-835b-c10770cb2495 |
+| train_0332 | RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1 | f01f19ba-94cc-4aad-a9b9-ed29ed134c76 |
+| train_0338 | RuntimeError: Tool 'food_delivery_list_restaurants' exceeded max retries count of 1 | 28654d2d-b92d-474d-9b6e-1282209d15d1 |
+| train_0361 | RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1 | eb36eb60-efb4-4188-9dc2-34f8afaa184e |
+| train_0368 | RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1 | ef4c3c88-d9db-4dac-8e1f-10dc55f0db0f |
+| train_0421 | RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1 | 86400262-4f93-4694-b769-a0306a607e98 |
+| train_0422 | RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1 | 3ae0ed6e-5ac2-40de-8769-55ff190d3008 |
+| train_0503 | RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1 | 5893ac5a-939b-43cc-863c-a51541014bd0 |
+| train_0545 | RuntimeError: Tool 'household_chores_list_chores' exceeded max retries count of 1 | e296ba4b-58c2-422b-8bb4-d728d083b0ea |
+| train_0570 | RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1 | 4f4617a1-99c1-458b-8607-260176f52372 |
+| train_0587 | RuntimeError: Tool 'subscriptions_list' exceeded max retries count of 1 | 1cc4c92d-857a-45dd-bdbd-5ca5824010fc |
+| train_0605 | RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1 | 1c836973-c5c1-4e06-9024-d23917ffbb1b |
+| train_0678 | RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1 | c09385b0-a7ca-476f-8cee-bd5d86c388b8 |
+| train_0692 | RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1 | 29282373-4471-442c-b735-b54c1ef991da |
+| train_0703 | RuntimeError: Tool 'music_list_tracks' exceeded max retries count of 1 | f5ceeeb9-ab6f-48ad-b4ed-8196391e9021 |
+| train_0707 | RuntimeError: Tool 'video_meeting_list_meetings' exceeded max retries count of 1 | 5ffb62ab-ddc7-4968-a083-85eddf915b65 |
+| train_0782 | RuntimeError: Tool 'door_lock_list_locks' exceeded max retries count of 1 | 0ff40299-dd7f-4a67-b77b-24df987c3853 |
+| train_0794 | RuntimeError: Tool 'door_lock_list_locks' exceeded max retries count of 1 | 64aa35dc-8dbd-40b3-bca5-1019abf3d29c |
+| train_0826 | RuntimeError: Tool 'notes_list' exceeded max retries count of 1 | 73afb38c-8eda-421c-8bb5-7fd304f14d65 |
+| train_0876 | RuntimeError: Tool 'music_list_tracks' exceeded max retries count of 1 | 423d90f0-be56-4a5b-a69b-42bb0a65d5f6 |
+| train_0912 | RuntimeError: Tool 'door_lock_list_locks' exceeded max retries count of 1 | 499e9cc9-030c-4730-a6cc-b6a19fc6eb3b |
+| train_0919 | RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1 | ce7df768-68a7-4d11-99cc-6d3714b38cf5 |
+| train_0967 | RuntimeError: Tool 'learning_list_courses' exceeded max retries count of 1 | 8ad319e6-3da2-470e-ba5f-185971a6f579 |
+| train_0969 | RuntimeError: Tool 'home_automation_list_rules' exceeded max retries count of 1 | e8805f27-cb62-4279-b78d-50b24dff56a2 |
+| train_0975 | RuntimeError: Tool 'shopping_list_get' exceeded max retries count of 1 | a85fac9f-7431-444e-9355-12ab2f9f7264 |
+| train_0984 | RuntimeError: Tool 'robot_vacuum_stop' exceeded max retries count of 1 | d79780eb-7050-4b72-a2e8-3f25639946cc |
+| train_0986 | RuntimeError: Tool 'learning_list_courses' exceeded max retries count of 1 | ca07d801-9a34-47b9-9675-081185dcee9e |
+| train_0990 | RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1 | ee31323f-3de3-49ea-afb6-261e348c834d |
+| train_0991 | RuntimeError: Tool 'door_lock_list_locks' exceeded max retries count of 1 | cea6682d-b5b2-4b2c-a032-2651c35116ae |
+| train_0992 | RuntimeError: Tool 'music_list_tracks' exceeded max retries count of 1 | c3a943f2-3e32-42d2-9760-e89ff0dcd6e4 |
+| train_1010 | RuntimeError: Tool 'subscriptions_list' exceeded max retries count of 1 | 40631df8-9c69-47b0-a8f4-8953ef7f9198 |
+| train_1060 | RuntimeError: Tool 'robot_vacuum_get_status' exceeded max retries count of 1 | 5d231b86-a160-408b-91e0-889927276d04 |
+| train_1074 | RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1 | d59052c5-3faa-4620-a855-9dadcd991231 |
+| train_1106 | RuntimeError: Tool 'medication_list' exceeded max retries count of 1 | 0a8efb1b-fb11-47db-95b3-72f0d084064c |
+| train_1113 | RuntimeError: Tool 'flights_my_bookings' exceeded max retries count of 1 | a5a1ee73-5182-49c1-803d-d835206918db |
+| train_1130 | RuntimeError: Tool 'medication_list' exceeded max retries count of 1 | 5b5a995a-cf63-407b-ac68-fc2529fa4eda |
+| train_1160 | RuntimeError: Tool 'flights_my_bookings' exceeded max retries count of 1 | f8042cea-2b58-4043-94e0-b8972c568f74 |
+| train_1179 | RuntimeError: Tool 'learning_list_courses' exceeded max retries count of 1 | edc849a1-92a8-4abd-b24d-1dde9c322015 |
+| train_1185 | RuntimeError: Tool 'medication_list' exceeded max retries count of 1 | c42455aa-69b7-4584-92f5-f628be806869 |
+| train_1200 | RuntimeError: Tool 'learning_list_courses' exceeded max retries count of 1 | 403a32a9-b7bf-4a5c-841c-771c545e2ced |
+| train_1201 | RuntimeError: Tool 'home_automation_list_rules' exceeded max retries count of 1 | 14578d11-2f86-454b-b102-d72f7d0cd4eb |
+| train_1216 | RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1 | 39b556df-ce86-4c85-a415-9a9b09391dc3 |
+| train_1281 | RuntimeError: Tool 'shopping_list_get' exceeded max retries count of 1 | dfeeab37-f0cf-4051-86b9-891bc10732e7 |
+| train_1343 | RuntimeError: Tool 'medication_list' exceeded max retries count of 1 | 92259a5b-54c6-42b9-9151-b310fe367843 |
+| train_1370 | RuntimeError: Tool 'robot_vacuum_get_status' exceeded max retries count of 1 | ef889be3-3670-4c67-8a13-d6f533a56cd3 |
+| train_1373 | RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1 | 9b7a3a0e-1fb6-4d62-97d2-4421ba065647 |
+| train_1386 | RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1 | b50c2914-6ff0-437b-81c5-20ae1268db48 |
+| train_1415 | RuntimeError: Tool 'household_chores_list_chores' exceeded max retries count of 1 | 96c4b641-13ef-4b3e-90df-532aa927c629 |
+| train_1564 | RuntimeError: Tool 'banking_list_beneficiaries' exceeded max retries count of 1 | 87bdb282-cff7-445c-865f-bc257653776a |
+| train_1590 | RuntimeError: Tool 'household_chores_list_chores' exceeded max retries count of 1 | 8c909ba6-2fb0-4753-81f9-abdfabe65573 |
+| train_1600 | RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1 | efde965c-60c4-4ad4-9f2f-1706bca54819 |
+| train_1610 | RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1 | 2bf29d73-60ea-48ae-9486-7c6ef43cf9e9 |
+| train_1682 | RuntimeError: Tool 'flights_my_bookings' exceeded max retries count of 1 | 1845ce1d-cff0-4d5c-aa3a-df014a44191a |
+| train_1749 | RuntimeError: Tool 'household_chores_list_chores' exceeded max retries count of 1 | 472b9eb3-82a0-4ab1-8031-e1bfed829655 |

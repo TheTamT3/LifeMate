@@ -1,0 +1,359 @@
+{
+  "experiment_id": "018769bd-b6ea-465f-8a0d-3fd79d38a6b9",
+  "total_roots": 300,
+  "retry_error_runs": 70,
+  "unique_samples": 70,
+  "other_errors": [],
+  "rows": [
+    {
+      "sample_id": "train_1749",
+      "trace_id": "472b9eb3-82a0-4ab1-8031-e1bfed829655",
+      "error": "RuntimeError: Tool 'household_chores_list_chores' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1682",
+      "trace_id": "1845ce1d-cff0-4d5c-aa3a-df014a44191a",
+      "error": "RuntimeError: Tool 'flights_my_bookings' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1610",
+      "trace_id": "2bf29d73-60ea-48ae-9486-7c6ef43cf9e9",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1600",
+      "trace_id": "efde965c-60c4-4ad4-9f2f-1706bca54819",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1590",
+      "trace_id": "8c909ba6-2fb0-4753-81f9-abdfabe65573",
+      "error": "RuntimeError: Tool 'household_chores_list_chores' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1564",
+      "trace_id": "87bdb282-cff7-445c-865f-bc257653776a",
+      "error": "RuntimeError: Tool 'banking_list_beneficiaries' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1415",
+      "trace_id": "96c4b641-13ef-4b3e-90df-532aa927c629",
+      "error": "RuntimeError: Tool 'household_chores_list_chores' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1386",
+      "trace_id": "b50c2914-6ff0-437b-81c5-20ae1268db48",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1373",
+      "trace_id": "9b7a3a0e-1fb6-4d62-97d2-4421ba065647",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1370",
+      "trace_id": "ef889be3-3670-4c67-8a13-d6f533a56cd3",
+      "error": "RuntimeError: Tool 'robot_vacuum_get_status' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1343",
+      "trace_id": "92259a5b-54c6-42b9-9151-b310fe367843",
+      "error": "RuntimeError: Tool 'medication_list' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1281",
+      "trace_id": "dfeeab37-f0cf-4051-86b9-891bc10732e7",
+      "error": "RuntimeError: Tool 'shopping_list_get' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1216",
+      "trace_id": "39b556df-ce86-4c85-a415-9a9b09391dc3",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1201",
+      "trace_id": "14578d11-2f86-454b-b102-d72f7d0cd4eb",
+      "error": "RuntimeError: Tool 'home_automation_list_rules' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1200",
+      "trace_id": "403a32a9-b7bf-4a5c-841c-771c545e2ced",
+      "error": "RuntimeError: Tool 'learning_list_courses' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1185",
+      "trace_id": "c42455aa-69b7-4584-92f5-f628be806869",
+      "error": "RuntimeError: Tool 'medication_list' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1179",
+      "trace_id": "edc849a1-92a8-4abd-b24d-1dde9c322015",
+      "error": "RuntimeError: Tool 'learning_list_courses' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1160",
+      "trace_id": "f8042cea-2b58-4043-94e0-b8972c568f74",
+      "error": "RuntimeError: Tool 'flights_my_bookings' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1130",
+      "trace_id": "5b5a995a-cf63-407b-ac68-fc2529fa4eda",
+      "error": "RuntimeError: Tool 'medication_list' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1113",
+      "trace_id": "a5a1ee73-5182-49c1-803d-d835206918db",
+      "error": "RuntimeError: Tool 'flights_my_bookings' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1106",
+      "trace_id": "0a8efb1b-fb11-47db-95b3-72f0d084064c",
+      "error": "RuntimeError: Tool 'medication_list' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1074",
+      "trace_id": "d59052c5-3faa-4620-a855-9dadcd991231",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1060",
+      "trace_id": "5d231b86-a160-408b-91e0-889927276d04",
+      "error": "RuntimeError: Tool 'robot_vacuum_get_status' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_1010",
+      "trace_id": "40631df8-9c69-47b0-a8f4-8953ef7f9198",
+      "error": "RuntimeError: Tool 'subscriptions_list' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0992",
+      "trace_id": "c3a943f2-3e32-42d2-9760-e89ff0dcd6e4",
+      "error": "RuntimeError: Tool 'music_list_tracks' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0991",
+      "trace_id": "cea6682d-b5b2-4b2c-a032-2651c35116ae",
+      "error": "RuntimeError: Tool 'door_lock_list_locks' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0990",
+      "trace_id": "ee31323f-3de3-49ea-afb6-261e348c834d",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0986",
+      "trace_id": "ca07d801-9a34-47b9-9675-081185dcee9e",
+      "error": "RuntimeError: Tool 'learning_list_courses' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0984",
+      "trace_id": "d79780eb-7050-4b72-a2e8-3f25639946cc",
+      "error": "RuntimeError: Tool 'robot_vacuum_stop' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0975",
+      "trace_id": "a85fac9f-7431-444e-9355-12ab2f9f7264",
+      "error": "RuntimeError: Tool 'shopping_list_get' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0969",
+      "trace_id": "e8805f27-cb62-4279-b78d-50b24dff56a2",
+      "error": "RuntimeError: Tool 'home_automation_list_rules' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0967",
+      "trace_id": "8ad319e6-3da2-470e-ba5f-185971a6f579",
+      "error": "RuntimeError: Tool 'learning_list_courses' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0919",
+      "trace_id": "ce7df768-68a7-4d11-99cc-6d3714b38cf5",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0912",
+      "trace_id": "499e9cc9-030c-4730-a6cc-b6a19fc6eb3b",
+      "error": "RuntimeError: Tool 'door_lock_list_locks' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0876",
+      "trace_id": "423d90f0-be56-4a5b-a69b-42bb0a65d5f6",
+      "error": "RuntimeError: Tool 'music_list_tracks' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0826",
+      "trace_id": "73afb38c-8eda-421c-8bb5-7fd304f14d65",
+      "error": "RuntimeError: Tool 'notes_list' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0794",
+      "trace_id": "64aa35dc-8dbd-40b3-bca5-1019abf3d29c",
+      "error": "RuntimeError: Tool 'door_lock_list_locks' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0782",
+      "trace_id": "0ff40299-dd7f-4a67-b77b-24df987c3853",
+      "error": "RuntimeError: Tool 'door_lock_list_locks' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0707",
+      "trace_id": "5ffb62ab-ddc7-4968-a083-85eddf915b65",
+      "error": "RuntimeError: Tool 'video_meeting_list_meetings' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0703",
+      "trace_id": "f5ceeeb9-ab6f-48ad-b4ed-8196391e9021",
+      "error": "RuntimeError: Tool 'music_list_tracks' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0692",
+      "trace_id": "29282373-4471-442c-b735-b54c1ef991da",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0678",
+      "trace_id": "c09385b0-a7ca-476f-8cee-bd5d86c388b8",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0605",
+      "trace_id": "1c836973-c5c1-4e06-9024-d23917ffbb1b",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0587",
+      "trace_id": "1cc4c92d-857a-45dd-bdbd-5ca5824010fc",
+      "error": "RuntimeError: Tool 'subscriptions_list' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0570",
+      "trace_id": "4f4617a1-99c1-458b-8607-260176f52372",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0545",
+      "trace_id": "e296ba4b-58c2-422b-8bb4-d728d083b0ea",
+      "error": "RuntimeError: Tool 'household_chores_list_chores' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0503",
+      "trace_id": "5893ac5a-939b-43cc-863c-a51541014bd0",
+      "error": "RuntimeError: Tool 'chat_ott_list_chats' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0422",
+      "trace_id": "3ae0ed6e-5ac2-40de-8769-55ff190d3008",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0421",
+      "trace_id": "86400262-4f93-4694-b769-a0306a607e98",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0368",
+      "trace_id": "ef4c3c88-d9db-4dac-8e1f-10dc55f0db0f",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0361",
+      "trace_id": "eb36eb60-efb4-4188-9dc2-34f8afaa184e",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0338",
+      "trace_id": "28654d2d-b92d-474d-9b6e-1282209d15d1",
+      "error": "RuntimeError: Tool 'food_delivery_list_restaurants' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0332",
+      "trace_id": "f01f19ba-94cc-4aad-a9b9-ed29ed134c76",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0303",
+      "trace_id": "31a8cfb6-7104-491a-835b-c10770cb2495",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0299",
+      "trace_id": "dfe95ea3-adb0-4e8e-b8fd-8a7350f446e9",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0298",
+      "trace_id": "1d5d665d-88f2-4927-bd69-194fb1edf606",
+      "error": "RuntimeError: Tool 'food_delivery_list_restaurants' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0267",
+      "trace_id": "c5d31908-443b-426c-9388-2addf80bbbeb",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0259",
+      "trace_id": "096b825f-6d49-49fd-806a-3c33e6d81271",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0214",
+      "trace_id": "4179af24-ee09-47d2-9b0b-04a463bde836",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0212",
+      "trace_id": "c929a97e-3b68-4a97-8d9c-ddeba957a972",
+      "error": "RuntimeError: Tool 'food_delivery_list_restaurants' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0211",
+      "trace_id": "04249e15-8623-470b-ad8b-c934ae451b6a",
+      "error": "RuntimeError: Tool 'food_delivery_list_restaurants' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0197",
+      "trace_id": "025f168a-a3b4-49bb-86a6-d9700a2b304f",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0190",
+      "trace_id": "2546608a-377f-46b5-908c-49f0bf3853f4",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0181",
+      "trace_id": "18442e6e-1d5a-4db1-8776-9b453ecfe3d3",
+      "error": "RuntimeError: Tool 'alarm_list' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0146",
+      "trace_id": "a81e393f-c22d-43e1-86c8-8854f074930c",
+      "error": "RuntimeError: Tool 'banking_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0141",
+      "trace_id": "d49d8c78-5aa1-46f1-afd8-a624248eafc8",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0112",
+      "trace_id": "256eead4-87cc-4eaa-99a7-e962873f3815",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0107",
+      "trace_id": "0410440b-f03d-405a-9632-210a7ee7899c",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0074",
+      "trace_id": "db5d2f8b-7450-48c9-b141-a71e6c121504",
+      "error": "RuntimeError: Tool 'ewallet_get_balance' exceeded max retries count of 1"
+    },
+    {
+      "sample_id": "train_0032",
+      "trace_id": "ed7e2966-0b2b-44c3-ab30-ca7de72422ec",
+      "error": "RuntimeError: Tool 'banking_list_beneficiaries' exceeded max retries count of 1"
+    }
+  ]
+}
