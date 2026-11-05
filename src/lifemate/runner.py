@@ -9,6 +9,7 @@ from .asr import ASR, transcript
 from .data import allowed_tools
 from .pydantic_agent import AgentDependencies, build_agent, run_agent, tool_name_map, VIETNAMESE_REASONING
 from .time_context import build_time_context
+from .oracle import OracleInputs, ORACLE_INSTRUCTIONS, ORACLE_VERSION
 
 
 def _tool_env(split: str, sample_id: str, root: Path) -> Any:
@@ -41,23 +42,31 @@ def run_sample(
     asr: ASR | None = None,
     max_steps: int = 10,
     seed: int = 0,
+    oracle_inputs: OracleInputs | None = None,
 ) -> dict[str, Any]:
+    if oracle_inputs is not None and split != 'train':
+        raise ValueError('oracle-tools-source requires train labels')
     env = _tool_env(split, sample["id"], root)
     tools = allowed_tools(sample, catalog)
+    history_names = tool_name_map(tools)
+    if oracle_inputs is not None:
+        available = {tool['name']: tool for tool in tools}
+        tools = [available[name] for name in oracle_inputs.tool_names]
     text = transcript(_sample_with_audio_root(sample, root, split), asr)
     tools_by_name = {tool["name"]: tool for tool in tools}
     deps = AgentDependencies(env=env, tools_by_name=tools_by_name, max_steps=max_steps, seed=seed)
     agent = build_agent(llm_model, deps)
     prompt = _build_agent_prompt(sample, text, tools)
-    names = tool_name_map(tools)
-    history_records = _history_records(sample, names)
+    if oracle_inputs is not None:
+        prompt = json.dumps({'request': text, 'source_context': oracle_inputs.source_context}, ensure_ascii=False)
+    history_records = _history_records(sample, history_names)
     message_history = _to_model_messages(history_records) if history_records else []
     run_agent(
         agent,
         deps,
         prompt,
         message_history=message_history,
-        instructions=_build_system_prompt(sample),
+        instructions=_build_system_prompt(sample) + ('\n' + ORACLE_INSTRUCTIONS if oracle_inputs is not None else ''),
     )
 
     result = {
@@ -67,6 +76,9 @@ def run_sample(
     }
     if deps.argument_normalizations:
         result["argument_normalizations"] = deps.argument_normalizations
+    if oracle_inputs is not None:
+        result['oracle'] = {'version': ORACLE_VERSION, 'tool_names': list(oracle_inputs.tool_names),
+                            'source_apps': sorted(oracle_inputs.source_context)}
     return result
 
 

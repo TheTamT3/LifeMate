@@ -182,7 +182,9 @@ def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog
         sample_for_run.pop("audio_text", None)
     try:
         traced_llm = tracing_model(llm, tracer) if llm is not None else None
-        result = runner.run_sample(sample_for_run, split=args.split, root=args.root, catalog=catalog, llm_model=traced_llm, asr=asr, max_steps=args.max_steps, seed=args.seed)
+        oracle = getattr(args, 'oracle_inputs', {}).get(str(sample['id']))
+        oracle_kwargs = {'oracle_inputs': oracle} if oracle is not None else {}
+        result = runner.run_sample(sample_for_run, split=args.split, root=args.root, catalog=catalog, llm_model=traced_llm, asr=asr, max_steps=args.max_steps, seed=args.seed, **oracle_kwargs)
     except Exception as exc:
         error = {"id": str(sample["id"]), "run_id": root_run_id, "error": f"{type(exc).__name__}: {exc}"}
         client.update_run(root_run_id, trace_id=root_run_id, dotted_order=root_dotted_order,
@@ -231,7 +233,11 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--project", default=None)
     parser.add_argument("--use-reference-text", action="store_true", help="use train audio_text instead of running ASR")
+    parser.add_argument('--oracle-tools-source', action='store_true',
+                        help='train-only: gold tool names plus initial source state of related apps; calls remain autonomous')
     args = parser.parse_args(argv)
+    if args.oracle_tools_source and args.split != 'train':
+        parser.error('--oracle-tools-source requires --split train')
 
     load_dotenv(ROOT / ".env", override=False)
     if args.project:
@@ -246,12 +252,15 @@ def main(argv: list[str] | None = None) -> None:
 
     data_path, catalog_path = split_paths(args.root, args.split)
     samples = select_samples(read_jsonl(data_path), sample_id=args.sample_id, limit=args.limit, sample_ids_file=args.sample_ids_file)
+    catalog = load_catalog(catalog_path)
+    from lifemate.oracle import prepare_oracle_inputs, ORACLE_VERSION
+    args.oracle_inputs = ({str(sample['id']): prepare_oracle_inputs(sample, catalog, args.root, args.split)
+                          for sample in samples} if args.oracle_tools_source else {})
     from lifemate.agent_evaluation import TrainEvaluator
     args.evaluator = TrainEvaluator(args.root) if args.split == 'train' else None
     args.references = ({str(sample['id']): args.evaluator.reference(sample) for sample in samples}
                        if args.evaluator else {})
     asr = prepare_asr(samples, args.split, args.use_reference_text, args.asr_model, args.asr_provider)
-    catalog = load_catalog(catalog_path)
     seed_everything(args.seed)
     client = create_trace_client(api_key)
 
@@ -264,7 +273,12 @@ def main(argv: list[str] | None = None) -> None:
         {'input_mode': 'reference_text' if args.use_reference_text else 'gipformer',
          'llm_model': args.llm_model_name, 'seed': args.seed, 'max_steps': args.max_steps,
          'model_settings': qwen_thinking_settings(args.seed), 'reasoning_language': 'vi',
-         'thinking_in_history': False, 'prompt_version': 'vi-qwen-thinking-v1'},
+         'thinking_in_history': False, 'prompt_version': 'vi-qwen-thinking-v1',
+         'oracle_tools_source': args.oracle_tools_source,
+         'oracle_version': ORACLE_VERSION if args.oracle_tools_source else None,
+         'tool_selection': 'gold_unique_names' if args.oracle_tools_source else 'installed_apps',
+         'source_selection': 'initial_app_state_and_schema_refs' if args.oracle_tools_source else 'tool_results',
+         'tool_choice': 'auto'},
         references=args.references,
     )
     project = experiment.name
