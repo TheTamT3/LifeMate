@@ -3,7 +3,7 @@
 Runbook này chạy toàn bộ pipeline trên cùng server GPU:
 
 ```text
-Gipformer ASR → PydanticAI → vLLM/Qwen3-4B → ToolEnv → state_hash
+Gipformer ASR → PydanticAI → vLLM/Qwen3.5-4B → ToolEnv → state_hash
 ```
 
 Model ASR:
@@ -20,33 +20,14 @@ cd /workspace/LifeMate
 git pull origin main
 ```
 
-## 2. Cài Miniconda và kích hoạt môi trường
+## 2. Chuẩn bị môi trường Python
 
-Nếu server Linux x86_64 chưa có Miniconda, chạy:
-
-```bash
-curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh
-bash /tmp/miniconda.sh -b -p "$HOME/miniconda3"
-```
-
-Tạo môi trường `lifemate` nếu chưa có (chỉ chạy một lần):
+Dùng môi trường Python hiện có trên server (kích hoạt môi trường đó nếu cần).
+Các lệnh `python`, `pip` và `vllm` bên dưới phải thuộc cùng môi trường.
 
 ```bash
-source ~/miniconda3/etc/profile.d/conda.sh
-conda create -n lifemate python=3.11 -y
-```
-
-Kích hoạt môi trường trước khi cài dependency:
-
-```bash
-source ~/miniconda3/etc/profile.d/conda.sh
-conda activate lifemate
 export PYTHONPATH="$PWD/src"
-```
-
-Kiểm tra GPU:
-
-```bash
+python --version
 nvidia-smi
 ```
 
@@ -67,9 +48,12 @@ Giữ `opentelemetry-api` vì PydanticAI cần thư viện này khi import.
 pip install -r requirements.txt
 python -m pip install -r requirements-gipformer.txt
 python -m pip install --upgrade pip
-python -m pip install vllm --extra-index-url https://download.pytorch.org/whl/cu129
+python -m pip install --upgrade vllm --extra-index-url https://wheels.vllm.ai/nightly
 vllm download-kernels
 ```
+
+Cần bản vLLM hỗ trợ Qwen3.5; kho nightly ở trên được nêu trong
+[hướng dẫn Qwen3.5](https://huggingface.co/Qwen/Qwen3.5-4B#quickstart).
 
 Kiểm tra vLLM và CUDA:
 
@@ -124,50 +108,31 @@ test -f data/train/train.jsonl && echo 'train jsonl OK'
 wc -l data/train/train.jsonl
 ```
 
-Nếu `scripts/eda_train.py` hoặc `scripts/build_validation_subset.py` chưa có sau `git pull`, copy chúng từ máy local hoặc commit chúng trước.
-
-### 4.1. SCP d? li?u t? local l?n server b?t k?
-
-Ch?y t?i th? m?c g?c repo tr?n m?y local. Thay `your-ssh-alias` b?ng SSH alias
-ho?c `user@hostname`, v? ???ng d?n ??ch theo server; th? m?c ??ch `data/` c?n t?n t?i.
-
-```powershell
-# Train
-scp -r "./train+public_test/train+public_test/train" your-ssh-alias:/workspace/LifeMate/data/
-
-# Public test
-scp -r "./train+public_test/train+public_test/public_test" your-ssh-alias:/workspace/LifeMate/data/
-
-# Both
-scp -r "./train+public_test/train+public_test/train" "./train+public_test/train+public_test/public_test" your-ssh-alias:/workspace/LifeMate/data/
-```
-
-## 5. Tạo subset cố định 300 mẫu
-
-```bash
-PYTHONPATH=src python scripts/eda_train.py
-PYTHONPATH=src python scripts/build_validation_subset.py
-```
-
-Kiểm tra:
+Runbook giả định subset 300 mẫu đã có sẵn. Kiểm tra trước khi chạy mục 8–9:
 
 ```bash
 wc -l data/validation_300/train/train.jsonl
 test -f data/validation_300/train/train_tools_catalog.json && echo 'catalog OK'
 test -d data/validation_300/train/train_environment && echo 'environment OK'
+test -f data/validation_300/train/zaic_tools/utils.py && echo 'evaluator utils OK'
+test -f data/validation_300/train/zaic_tools/validate.py && echo 'evaluator validate OK'
 ```
 
-Số dòng phải là `300`.
+Số dòng phải là `300`. Smoke test train cần `label.tool_calls`, `label.final_state`
+trong từng sample và runtime `zaic_tools` để chấm điểm.
 
-## 6. Tải model Qwen và Gipformer
+## 6. Tải model Qwen3.5-4B và Gipformer
+
+Chạy từ thư mục gốc repo trên server:
 
 ```bash
+df -h .
 python - <<'PY'
 from huggingface_hub import snapshot_download
 
 snapshot_download(
-    repo_id='Qwen/Qwen3-4B',
-    local_dir='models/qwen3-4b',
+    repo_id='Qwen/Qwen3.5-4B',
+    local_dir='models/qwen3.5-4b',
 )
 snapshot_download(
     repo_id='g-group-ai-lab/gipformer1.5-68M-rnnt',
@@ -178,86 +143,29 @@ snapshot_download(
 PY
 ```
 
-### 6.1. Tải Qwen3-4B-Thinking-2507 (tùy chọn)
-
-Chạy từ thư mục gốc repo trên server, trong môi trường Python dùng chạy vLLM:
-
-```bash
-cd /workspace/LifeMate
-python - <<'PY'
-from huggingface_hub import snapshot_download
-
-snapshot_download(
-    repo_id='Qwen/Qwen3-4B-Thinking-2507',
-    local_dir='models/qwen3-4b-thinking-2507',
-)
-PY
-```
-
-Kiểm tra cấu hình và trọng số đã tải:
-
-```bash
-ls models/qwen3-4b-thinking-2507/config.json
-ls models/qwen3-4b-thinking-2507/*.safetensors
-```
-
-Để dùng checkpoint này, thay đường dẫn sau `vllm serve` ở mục 7 bằng
-`models/qwen3-4b-thinking-2507`. Có thể giữ alias
-`--served-model-name qwen3-4b`; khi đó các lệnh smoke test vẫn dùng
-`--llm-model-name qwen3-4b`, còn `--model` đổi thành
-`models/qwen3-4b-thinking-2507`. Dừng instance vLLM cũ trước khi chạy lại
-trên cùng cổng 8000. Bản này chỉ hỗ trợ thinking.
-
-### 6.2. Tải Qwen3.5-4B (tùy chọn)
-
-Chạy từ thư mục gốc repo trên server, trong môi trường Python dùng chạy vLLM.
-Kiểm tra dung lượng ổ đĩa trước khi tải:
-
-```bash
-cd /workspace/LifeMate
-df -h .
-python - <<'PY'
-from huggingface_hub import snapshot_download
-
-snapshot_download(
-    repo_id='Qwen/Qwen3.5-4B',
-    local_dir='models/qwen3.5-4b',
-)
-PY
-```
-
-Kiểm tra cấu hình và trọng số đã tải:
+Kiểm tra cấu hình, trọng số và file ASR đã tải:
 
 ```bash
 ls models/qwen3.5-4b/config.json
 ls models/qwen3.5-4b/*.safetensors
-```
-
-Khi khởi động vLLM, dùng đường dẫn local `models/qwen3.5-4b` để tránh
-tải lại model vào cache. Qwen3.5 cần phiên bản vLLM hỗ trợ kiến trúc này;
-không dùng nguyên cấu hình parser của Qwen3 ở mục 7. Hướng dẫn chính thức
-dùng `--reasoning-parser qwen3` và `--tool-call-parser qwen3_coder`:
-[Qwen3.5-4B](https://huggingface.co/Qwen/Qwen3.5-4B#quickstart).
-
-Kiểm tra file Gipformer:
-
-```bash
 ls models/gipformer1.5-68m-rnnt/{encoder.onnx,decoder.onnx,joiner.onnx,tokens.txt}
 ```
+
+Dùng đường dẫn local khi khởi động vLLM. Qwen3.5 dùng
+`--reasoning-parser qwen3` và `--tool-call-parser qwen3_coder` theo
+[hướng dẫn chính thức](https://huggingface.co/Qwen/Qwen3.5-4B#quickstart).
 
 ## 7. Khởi động vLLM chạy nền bằng nohup
 
 Chạy các lệnh sau trong SSH trên server GPU. `nohup` giữ vLLM chạy khi ngắt
-SSH, không cần tmux. Kích hoạt môi trường `lifemate` trước khi khởi động:
+SSH, không cần tmux. Dùng cùng môi trường Python đã cài dependency ở mục 3:
 
 ```bash
 cd /workspace/LifeMate
-source ~/miniconda3/etc/profile.d/conda.sh
-conda activate lifemate
 mkdir -p logs
 
-nohup vllm serve models/qwen3-4b \
-  --served-model-name qwen3-4b \
+nohup vllm serve models/qwen3.5-4b \
+  --served-model-name qwen3.5-4b \
   --host 127.0.0.1 \
   --port 8000 \
   --max-model-len 16384 \
@@ -265,7 +173,7 @@ nohup vllm serve models/qwen3-4b \
   --max-num-seqs 1 \
   --enforce-eager \
   --enable-auto-tool-choice \
-  --tool-call-parser hermes \
+  --tool-call-parser qwen3_coder \
   --reasoning-parser qwen3 \
   > logs/vllm.log 2>&1 < /dev/null &
 
@@ -322,17 +230,17 @@ python scripts/smoke_e2e_langsmith.py \
   --root data/validation_300 \
   --split train \
   --sample-id train_0001 \
-  --model models/qwen3-4b \
+  --model models/qwen3.5-4b \
   --asr-model models/gipformer1.5-68m-rnnt \
   --asr-backend gipformer \
   --llm-base-url http://127.0.0.1:8000/v1 \
-  --llm-model-name qwen3-4b
+  --llm-model-name qwen3.5-4b
 ```
 
 Output gồm `project`, `run_id`, `tool_calls` và `state_hash`. Mở `run_id` trên
 LangSmith sẽ thấy các child run của ASR, agent và từng tool call thật.
 
-Lệnh `baseline.py` phía trên chỉ ghi JSONL local; không tự gửi trace.
+Lệnh `baseline.py` ở mục 9 chỉ ghi JSONL local; không tự gửi trace.
 
 ### 8.1. Experiment 10 mẫu với trace từng row
 
@@ -343,7 +251,9 @@ Script tạo hoặc tái sử dụng dataset và tạo một Experiment mới ch
 Mỗi root trace được liên kết với một dataset example qua `reference_example_id`.
 Mở dataset tương ứng trong **Datasets & Experiments** để xem các lần chạy và
 trace từng row. Example không đổi được tái sử dụng; thay đổi nội dung sample tạo
-example mới. Chưa có evaluator tự động chấm điểm kết quả.
+example mới. Với split `train`, script tự chấm `tool_call_accuracy` và
+`state_hash_match`, rồi gửi feedback lên LangSmith. Nếu bước chấm/gửi feedback
+thất bại, kết quả có trường `evaluation_error`; kiểm tra trường này trong output.
 
 ```bash
 PYTHONPATH=src \
@@ -351,12 +261,11 @@ python scripts/smoke_e2e_langsmith.py \
   --root data/validation_300 \
   --split train \
   --limit 10 \
-  --model models/qwen3-4b \
+  --model models/qwen3.5-4b \
   --asr-model models/gipformer1.5-68m-rnnt \
   --asr-backend gipformer \
   --llm-base-url http://127.0.0.1:8000/v1 \
-  --llm-model-name qwen3-4b \
-  --output result/langsmith-e2e-10.jsonl
+  --llm-model-name qwen3.5-4b
 ```
 
 #### Bỏ qua ASR, dùng label text của train
@@ -371,19 +280,18 @@ PYTHONPATH=src python scripts/smoke_e2e_langsmith.py \
   --root data/validation_300 \
   --split train \
   --limit 10 \
-  --model models/qwen3-4b \
+  --model models/qwen3.5-4b \
   --use-reference-text \
   --llm-base-url http://127.0.0.1:8000/v1 \
-  --llm-model-name qwen3-4b \
-  --dataset-name lifemate-validation300-train \
-  --output result/langsmith-text-10.jsonl
+  --llm-model-name qwen3.5-4b \
+  --dataset-name lifemate-validation300-train
 ```
 
 `--dataset-name` chọn dataset dùng chung để so sánh các lần chạy ASR và label
 text. `--experiment-name` đặt tên Experiment tùy chọn, phải là tên mới chưa sử
 dụng. Nếu bỏ qua, script tự tạo tên duy nhất từ `LANGSMITH_PROJECT`. Metadata
 `input_mode` phân biệt `gipformer` và `reference_text`; trace đọc label có tên
-`input.reference_text`. File JSONL và trường `project` trong output ghi tên
+`input.reference_text`. Trường `project` trong JSON stdout ghi tên
 Experiment thực tế. Dùng cùng `--dataset-name` cho lệnh ASR nếu muốn so sánh
 trên cùng dataset.
 
@@ -395,15 +303,16 @@ python scripts/smoke_e2e_langsmith.py \
   --root data/validation_300 \
   --split train \
   --limit 300 \
-  --model models/qwen3-4b \
+  --model models/qwen3.5-4b \
   --asr-model models/gipformer1.5-68m-rnnt \
   --asr-backend gipformer \
   --llm-base-url http://127.0.0.1:8000/v1 \
-  --llm-model-name qwen3-4b \
-  --output result/langsmith-e2e-300.jsonl
+  --llm-model-name qwen3.5-4b
 ```
 
-File JSONL chỉ là summary local; trace chi tiết nằm trên LangSmith. Không dùng
+Script in JSON summary ra stdout; không nhận `--output`. Nếu cần lưu, tạo thư mục
+`result/` rồi thêm `> result/langsmith-e2e-300.json` vào cuối lệnh.
+Trace chi tiết và feedback nằm trên LangSmith. Không dùng
 `--use-reference-text` nếu muốn chạy ASR thật trên train samples.
 
 ## 9. Chạy toàn bộ 300 mẫu
@@ -415,11 +324,11 @@ HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PYTHONPATH=src \
 time python baseline.py \
   --root data/validation_300 \
   --split train \
-  --model models/qwen3-4b \
+  --model models/qwen3.5-4b \
   --asr-model models/gipformer1.5-68m-rnnt \
   --asr-backend gipformer \
   --llm-base-url http://127.0.0.1:8000/v1 \
-  --llm-model-name qwen3-4b \
+  --llm-model-name qwen3.5-4b \
   --output result/gipformer-validation300-submission.jsonl \
   --limit 300
 ```
@@ -439,3 +348,9 @@ Kết quả phải là `300`.
 - `Connection refused 127.0.0.1:8000`: vLLM chưa chạy hoặc chạy sai port.
 - `unsupported ASR backend: gipformer`: repo trên server chưa được `git pull` commit có hỗ trợ Gipformer.
 - Không đọc trực tiếp `state.json`; state chỉ được truy cập qua `ToolEnv`.
+
+- `model not found` từ API: `--llm-model-name qwen3.5-4b` phải khớp `--served-model-name` ở mục 7.
+- Không nhận kiến trúc Qwen3.5 hoặc parser `qwen3_coder`: kiểm tra/nâng cấp vLLM trong đúng môi trường Python ở mục 3 rồi khởi động lại server.
+- Tool call không được parse: kiểm tra mục 7 dùng `--enable-auto-tool-choice --tool-call-parser qwen3_coder --reasoning-parser qwen3`.
+- `unrecognized arguments: --output` khi chạy smoke test: bỏ cờ này; dùng chuyển hướng stdout để lưu JSON summary như mục 8.2.
+- Thiếu `zaic_tools/utils.py`, `zaic_tools/validate.py` hoặc label khi smoke test train: kiểm tra dữ liệu subset ở mục 4.
