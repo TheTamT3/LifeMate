@@ -30,6 +30,7 @@ def run_dataset(
     seed: int = 0,
     quantize: bool = False,
     asr_backend: str = "chunkformer",
+    asr_provider: str = "cuda",
     llm_base_url: str = "http://127.0.0.1:8000/v1",
     llm_model_name: str = "qwen3-4b",
 ) -> None:
@@ -57,7 +58,7 @@ def run_dataset(
     elif asr_backend == "parakeet":
         asr = ParakeetASR(config.asr_model_path)
     elif asr_backend == "gipformer":
-        asr = GipformerASR(config.asr_model_path, device="cuda")
+        asr = GipformerASR(config.asr_model_path, provider=asr_provider)
     else:
         raise ValueError(f"unsupported ASR backend: {asr_backend}")
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -94,6 +95,12 @@ def main(argv: list[str] | None = None) -> None:
         choices=["chunkformer", "qwen3", "whisper", "parakeet", "gipformer"],
         default="chunkformer",
     )
+    parser.add_argument(
+        "--asr-provider",
+        choices=["cuda", "cpu"],
+        default="cuda",
+        help="Inference provider for Gipformer (use cpu when CUDA libraries are incompatible)",
+    )
     args = parser.parse_args(argv)
     run_dataset(
         root=args.root,
@@ -105,6 +112,7 @@ def main(argv: list[str] | None = None) -> None:
         seed=args.seed,
         quantize=args.quantize,
         asr_backend=args.asr_backend,
+        asr_provider=args.asr_provider,
         llm_base_url=args.llm_base_url,
         llm_model_name=args.llm_model_name,
     )

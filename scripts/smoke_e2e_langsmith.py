@@ -63,7 +63,7 @@ def select_samples(samples: list[dict[str, Any]], *, sample_id: str | None = Non
     return selected
 
 
-def prepare_asr(samples, split, use_reference_text, model_path):
+def prepare_asr(samples, split, use_reference_text, model_path, provider='cuda'):
     if use_reference_text:
         if split != 'train':
             raise ValueError('--use-reference-text requires the train split')
@@ -74,7 +74,7 @@ def prepare_asr(samples, split, use_reference_text, model_path):
     if model_path is None:
         raise ValueError('--asr-model is required unless --use-reference-text is set')
     from lifemate.asr import GipformerASR
-    return GipformerASR(model_path, device='cuda')
+    return GipformerASR(model_path, provider=provider)
 
 
 def prepare_experiment(client, samples, dataset_name, experiment_name, metadata, references=None):
@@ -83,13 +83,15 @@ def prepare_experiment(client, samples, dataset_name, experiment_name, metadata,
     except LangSmithNotFoundError:
         dataset = client.create_dataset(dataset_name=dataset_name)
     example_ids = {}
+    # Read existing examples once instead of making a remote read request per row.
+    existing_ids = {str(example.id) for example in client.list_examples(
+        dataset_id=dataset.id, limit=max(1000, len(samples) + 1),
+    )}
     for sample in samples:
         # Content-addressed IDs reuse unchanged examples, without overwriting labels.
         identity = json.dumps(sample, sort_keys=True, ensure_ascii=False)
         example_id = uuid5(NAMESPACE_URL, f'{dataset.id}:reference-v2:{identity}')
-        try:
-            client.read_example(example_id)
-        except LangSmithNotFoundError:
+        if str(example_id) not in existing_ids:
             client.create_example(
                 dataset_id=dataset.id, example_id=example_id,
                 inputs={k: v for k, v in sample.items() if k not in {'label', 'tool_calls', 'state_hash'}},
@@ -139,6 +141,15 @@ def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog
 
     def traced_transcript(sample_data, asr_model):
         name = 'input.reference_text' if args.use_reference_text else 'asr.gipformer.transcribe'
+        sample_key = str(sample_data.get('id'))
+        precomputed = getattr(args, 'precomputed_asr', {})
+        if sample_key in precomputed:
+            metadata = {'provider': args.asr_provider}
+            metadata.update(getattr(args, 'precomputed_asr_metadata', {}).get(sample_key, {}))
+            return tracer.trace(
+                name, 'chain', {'audio': sample_data.get('audio'), 'backend': input_mode},
+                lambda: precomputed[sample_key], metadata=metadata,
+            )
         return tracer.trace(name, "chain", {"audio": sample_data.get("audio"), "backend": input_mode}, lambda: original_transcript(sample_data, asr_model))
 
     def traced_run_agent(agent, deps, prompt, **kwargs):
@@ -212,6 +223,8 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument('--dataset-name', help='LangSmith dataset name; defaults to root name and split')
     parser.add_argument('--experiment-name', help='Unique experiment name; defaults to project plus UUID')
     parser.add_argument("--asr-backend", choices=["gipformer"], default="gipformer")
+    parser.add_argument("--asr-provider", choices=["cuda", "cpu"], default="cuda",
+                        help="Gipformer inference provider; choose cpu if CUDA runtime libraries are incompatible")
     parser.add_argument("--llm-base-url", default="http://127.0.0.1:8000/v1")
     parser.add_argument("--llm-model-name", default="qwen3-4b")
     parser.add_argument("--max-steps", type=int, default=10)
@@ -237,7 +250,7 @@ def main(argv: list[str] | None = None) -> None:
     args.evaluator = TrainEvaluator(args.root) if args.split == 'train' else None
     args.references = ({str(sample['id']): args.evaluator.reference(sample) for sample in samples}
                        if args.evaluator else {})
-    asr = prepare_asr(samples, args.split, args.use_reference_text, args.asr_model)
+    asr = prepare_asr(samples, args.split, args.use_reference_text, args.asr_model, args.asr_provider)
     catalog = load_catalog(catalog_path)
     seed_everything(args.seed)
     client = create_trace_client(api_key)
