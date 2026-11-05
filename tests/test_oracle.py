@@ -28,13 +28,12 @@ def fixture_data(tmp_path):
     return sample, catalog
 
 
-def test_prepares_only_unique_sorted_names_and_initial_sources(tmp_path):
+def test_prepares_only_unique_sorted_names_without_state(tmp_path):
     sample, catalog = fixture_data(tmp_path)
     original = copy.deepcopy(sample)
     prepared = prepare_oracle_inputs(sample, catalog, tmp_path, 'train')
     assert prepared.tool_names == ('calendar.list', 'calendar.update')
-    assert prepared.source_context == {'calendar': {'events': [{'id': 'initial'}]},
-                                       'contacts': {'contacts': [{'id': 'c1'}]}}
+    assert not hasattr(prepared, 'source_context')
     assert 'GOLD' not in repr(prepared)
     assert sample == original
 
@@ -44,7 +43,7 @@ def test_empty_calls_do_not_add_system_tool_or_require_state(tmp_path):
     sample['label']['tool_calls'] = []
     prepared = prepare_oracle_inputs(sample, catalog, tmp_path / 'absent', 'train')
     assert prepared.tool_names == ()
-    assert prepared.source_context == {}
+    assert not hasattr(prepared, 'source_context')
 
 
 @pytest.mark.parametrize('split', ['public_test', 'private_test'])
@@ -75,10 +74,10 @@ def test_system_only_needs_no_app_source(tmp_path):
     sample['label']['tool_calls'] = [{'name': 'sys.ask_missing_info'}]
     prepared = prepare_oracle_inputs(sample, catalog, tmp_path / 'absent', 'train')
     assert prepared.tool_names == ('sys.ask_missing_info',)
-    assert prepared.source_context == {}
+    assert not hasattr(prepared, 'source_context')
 
 
-def test_runner_delivers_source_and_preserves_autonomous_zero_calls(tmp_path, monkeypatch):
+def test_runner_excludes_state_and_preserves_autonomous_zero_calls(tmp_path, monkeypatch):
     from lifemate import runner
     sample, catalog = fixture_data(tmp_path)
     prepared = prepare_oracle_inputs(sample, catalog, tmp_path, 'train')
@@ -94,13 +93,13 @@ def test_runner_delivers_source_and_preserves_autonomous_zero_calls(tmp_path, mo
     result = runner.run_sample(sample, 'train', tmp_path, catalog, None, oracle_inputs=prepared)
     assert set(captured['tools']) == set(prepared.tool_names)
     assert captured['prompt'] == 'request'
-    assert 'initial' in captured['instructions'] and 'source_context' in captured['instructions']
+    assert 'initial' not in captured['instructions'] and 'source_context' not in captured['instructions']
     assert 'GOLD' not in str(captured)
     assert result['tool_calls'] == []
     assert result['oracle']['tool_names'] == list(prepared.tool_names)
     from lifemate.oracle import ORACLE_INSTRUCTIONS
     assert captured['agent_options'] == {'instructions': ORACLE_INSTRUCTIONS}
-    assert json.loads(captured['instructions'])['source_context'] == prepared.source_context
+    assert set(json.loads(captured['instructions'])) == {'context'}
 
     captured.clear()
     sample['source_context'] = {'secret': 'UNTRUSTED_SOURCE'}
@@ -111,10 +110,9 @@ def test_runner_delivers_source_and_preserves_autonomous_zero_calls(tmp_path, mo
     assert captured['agent_options'] == {}
 
 
-def test_missing_initial_file_is_not_replaced_with_gold_results(tmp_path):
+def test_preparation_needs_no_state_file(tmp_path):
     sample, catalog = fixture_data(tmp_path)
-    with pytest.raises(FileNotFoundError):
-        prepare_oracle_inputs(sample, catalog, tmp_path / 'absent', 'train')
+    assert prepare_oracle_inputs(sample, catalog, tmp_path / 'absent', 'train').tool_names == ('calendar.list', 'calendar.update')
 
 
 def test_gold_order_arguments_and_results_do_not_change_inputs(tmp_path):
@@ -136,6 +134,9 @@ def test_real_sdk_request_has_only_selected_tools_and_auto_choice(tmp_path, monk
 
     sample, catalog = fixture_data(tmp_path)
     sample['context']['current_time'] = '2026-11-05T09:00:00+07:00'
+    # These fields are deliberately outside the allowed model inputs.
+    for field in ('source_context', 'state', 'final_state', 'tool_calls', 'state_hash'):
+        sample[field] = {'secret': 'FORBIDDEN_TOP_LEVEL_DATA'}
     sample['history'] = [{'role': 'assistant', 'tool_calls': [
         {'name': 'calendar.update', 'arguments': {'contact_id': 'c1'}}],
         'tool_results': [{'ok': True}]}]
@@ -180,10 +181,10 @@ def test_real_sdk_request_has_only_selected_tools_and_auto_choice(tmp_path, monk
     body = requests[0]
     assert [t['function']['name'] for t in body.get('tools', [])] == ['calendar_list' for _ in selected]
     assert body.get('tool_choice', 'auto') == 'auto'
-    assert 'source_context' in str(body['messages'])
-    if selected:
-        assert 'initial' in str(body['messages'])
+    assert 'source_context' not in str(body['messages'])
+    assert 'initial' not in str(body['messages'])
     assert 'GOLD' not in str(body)
+    assert 'FORBIDDEN_TOP_LEVEL_DATA' not in str(requests)
     from lifemate.oracle import ORACLE_INSTRUCTIONS
     system_messages = [m for m in body['messages'] if m['role'] == 'system']
     assert len(system_messages) == 1
@@ -195,7 +196,7 @@ def test_real_sdk_request_has_only_selected_tools_and_auto_choice(tmp_path, monk
     assert 'context' in payload
     assert payload['context']['current_time'] == sample['context']['current_time']
     assert 'installed_apps' not in payload['context']
-    assert payload['source_context'] == prepared.source_context
+    assert set(payload) == {'context'}
     for request in requests:
         assert next(m['content'] for m in request['messages'] if m['role'] == 'system') == system_text
     history_call = next(m for m in body['messages'] if m.get('tool_calls'))
@@ -250,3 +251,10 @@ def test_saved_300_ids_are_unique():
     path = Path(__file__).resolve().parents[1] / 'experiments/oracle_tools_source/sample_ids_300.txt'
     ids = path.read_text(encoding='utf-8').split()
     assert len(ids) == len(set(ids)) == 300
+
+
+def test_preparation_never_reads_state(tmp_path, monkeypatch):
+    from pathlib import Path
+    sample, catalog = fixture_data(tmp_path)
+    monkeypatch.setattr(Path, 'read_text', lambda *a, **kw: pytest.fail('state read forbidden'))
+    assert prepare_oracle_inputs(sample, catalog, tmp_path, 'train').tool_names == ('calendar.list', 'calendar.update')

@@ -234,7 +234,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--project", default=None)
     parser.add_argument("--use-reference-text", action="store_true", help="use train audio_text instead of running ASR")
     parser.add_argument('--oracle-tools-source', action='store_true',
-                        help='train-only: gold tool names plus initial source state of related apps; calls remain autonomous')
+                        help='train-only: gold tool names only; app data comes from tool calls, never injected state')
     args = parser.parse_args(argv)
     if args.oracle_tools_source and args.split != 'train':
         parser.error('--oracle-tools-source requires --split train')
@@ -274,11 +274,11 @@ def main(argv: list[str] | None = None) -> None:
          'llm_model': args.llm_model_name, 'seed': args.seed, 'max_steps': args.max_steps,
          'model_settings': qwen_thinking_settings(args.seed), 'reasoning_language': 'vi',
          'thinking_in_history': False,
-         'prompt_version': 'oracle-simple-v2' if args.oracle_tools_source else 'vi-qwen-thinking-v1',
+         'prompt_version': 'oracle-tools-only-v3' if args.oracle_tools_source else 'vi-qwen-thinking-v1',
          'oracle_tools_source': args.oracle_tools_source,
          'oracle_version': ORACLE_VERSION if args.oracle_tools_source else None,
          'tool_selection': 'gold_unique_names' if args.oracle_tools_source else 'installed_apps',
-         'source_selection': 'initial_app_state_and_schema_refs' if args.oracle_tools_source else 'tool_results',
+         'source_selection': 'tool_results',
          'tool_choice': 'auto'},
         references=args.references,
     )

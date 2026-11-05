@@ -1,16 +1,15 @@
-# Oracle tools and initial app sources
+# Oracle tools only
 
 Branch: `experiment/oracle-tools-source`, based on `main` at `4dffca8`.
 
-This train-only experiment measures performance with the correct tool set and relevant initial app data supplied in advance. The agent still chooses whether to call a tool, which tool, arguments, ordering, repetitions and when to finish. No call is forced; the SDK retains automatic tool choice.
+This train-only experiment measures performance with only the correct tool set supplied in advance. The agent still chooses whether to call a tool, which tool, arguments, ordering, repetitions and when to finish. No call is forced; the SDK retains automatic tool choice.
 
 ## Input contract
 
 - Tool availability is the **sorted unique set** of `label.tool_calls[*].name`. Label ordering and multiplicity are discarded. No extra system tool is added; an empty gold set exposes no tools.
-- `source_context` contains **initial state sections of relevant apps**, selected from each tool's catalog `app` and recursively discovered schema `x-ref` app prefixes. The state comes from `train/train_environment/<id>/state.json` before any tool execution. Metadata and unrelated apps are excluded. Stateless tools may have no state section.
-- Selection is at **app granularity**, not exact target-row granularity. All rows of a selected app remain available, so entity selection and ambiguity resolution are still tested. This does not establish an upper bound with perfect target-record selection.
+- No state data is supplied to the model. Oracle preparation never reads `state.json`; all app data must come from actual tool calls. Runtime execution and evaluation still use state internally.
 - Gold arguments, gold tool results and final state are never used to construct the agent input. Historical conversation remains unchanged, including wire names for tools excluded from the current tool set.
-- The current user message contains only the user's request text. The system prompt combines `ORACLE_INSTRUCTIONS` from `src/lifemate/oracle.py` with JSON data containing `context` (without installed_apps) and `source_context`. Both remain fixed across requests of the same sample. No baseline policies or derived calendar are appended in oracle mode. Tool semantics, schemas, sampling, thinking and request limit stay unchanged.
+- The current user message contains only the user's request text. The system prompt combines `ORACLE_INSTRUCTIONS` from `src/lifemate/oracle.py` with JSON data containing only the original sample `context` (without installed_apps). Both remain fixed across requests of the same sample. No baseline policies or derived calendar are appended in oracle mode. Tool semantics, schemas, sampling, thinking and request limit stay unchanged.
 - The baseline path is unchanged when the flag is absent. All selected oracle inputs are prepared before model inference or experiment creation; malformed labels and unknown/unavailable tools fail preflight.
 
 ## Run the same 300 samples
@@ -39,12 +38,12 @@ For local preparation, the original data root is `train+public_test/train+public
 
 ## Evaluation
 
-Keep the existing evaluator and labels. Report `state_hash_match` and `tool_call_accuracy` separately: supplied initial source data can let the agent skip a gold read call, producing the correct state but a lower full-call-set match. Do not silently remove reads or rewrite labels. Runtime failures and latency should also be reported.
+Keep the existing evaluator and labels. Report `state_hash_match` and `tool_call_accuracy` separately: full-call matching measures lookup calls and clarification calls as well as mutations. Do not silently remove reads or rewrite labels. Runtime failures and latency should also be reported.
 
-Project metadata records `oracle_tools_source`, `oracle_version`, tool/source selection and automatic tool choice. Each successful sample output records selected tool names and source app names. Do not interpret this label-assisted result as normal benchmark performance.
+Project metadata records `oracle_tools_source`, `oracle_version`, tool/source selection and automatic tool choice. Each successful sample output records selected tool names. Do not interpret this label-assisted result as normal benchmark performance.
 
-Version `gold-tools-initial-app-sources-v2` uses `prompt_version=oracle-simple-v2`. It changes both source/tool availability and the system prompt relative to baseline, so accuracy differences do not isolate source/tool selection alone. The baseline without the oracle flag retains its existing instructions. Batch support from the abandoned uncommitted changes is not included; execution remains sequential.
+Version `gold-tools-only-v3` uses `prompt_version=oracle-tools-only-v3` and `source_selection=tool_results`. Versions v1/v2 supplied initial state and must not be treated as state-free results. The legacy flag `--oracle-tools-source` and directory name remain for CLI compatibility; they now select tools only. This is still a label-assisted experiment, not an ordinary benchmark run. Execution remains sequential.
 
-Offline preparation succeeded for all 300 IDs: 21 samples with no gold tools; tool-set size distribution `{0: 21, 1: 76, 2: 89, 3: 63, 4: 38, 5: 13}`. This is preparation validation, not measured LLM accuracy. No real model inference has been run for this experiment yet.
+Offline preparation succeeded for all 300 IDs: 21 samples with no gold tools; tool-set size distribution `{0: 21, 1: 76, 2: 89, 3: 63, 4: 38, 5: 13}`. This is preparation validation, not measured LLM accuracy. No real model inference has been run for v3 yet.
 
-Verification: 36 targeted tests passed, including real SDK requests over mocked HTTP, autonomous tool execution/omission, an empty tool set, label isolation, CLI restrictions and tracing handoff. Three pre-existing policy tests on main require the absent `tests/fixtures/mechanism_cases.json`; these were already failing before this change.
+Verification: 37 targeted tests passed, including real SDK requests over mocked HTTP, autonomous tool execution/omission, an empty tool set, label isolation, CLI restrictions and tracing handoff. Three pre-existing policy tests on main require the absent `tests/fixtures/mechanism_cases.json`; these were already failing before this change.

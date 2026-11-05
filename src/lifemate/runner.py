@@ -62,8 +62,7 @@ def run_sample(
     if oracle_inputs is not None:
         context = dict(sample.get('context', {}))
         context.pop('installed_apps', None)
-        instructions = json.dumps({'context': context,
-                                   'source_context': oracle_inputs.source_context}, ensure_ascii=False)
+        instructions = json.dumps({'context': context}, ensure_ascii=False)
     history_records = _history_records(sample, history_names)
     message_history = _to_model_messages(history_records) if history_records else []
     run_agent(
@@ -82,8 +81,7 @@ def run_sample(
     if deps.argument_normalizations:
         result["argument_normalizations"] = deps.argument_normalizations
     if oracle_inputs is not None:
-        result['oracle'] = {'version': ORACLE_VERSION, 'tool_names': list(oracle_inputs.tool_names),
-                            'source_apps': sorted(oracle_inputs.source_context)}
+        result['oracle'] = {'version': ORACLE_VERSION, 'tool_names': list(oracle_inputs.tool_names)}
     return result
 
 
