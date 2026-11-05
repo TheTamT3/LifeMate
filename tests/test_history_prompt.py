@@ -33,6 +33,10 @@ def test_system_prompt_adds_only_derived_calendar_facts_not_label_or_state():
     system = _build_system_prompt(sample)
     assert "Mốc lịch suy ra từ context" in system
     assert '"tomorrow": "2026-11-04"' in system
+    calendar_fragment = system.split('"calendar": ', 1)[1]
+    days = json.loads(calendar_fragment[: calendar_fragment.index("]") + 1])
+    assert days[3] == {"date": "2026-11-05", "weekday_vi": "thứ năm"}
+    assert len(days) == 14
     assert "gold-only" not in system
     assert "state-only" not in system
 

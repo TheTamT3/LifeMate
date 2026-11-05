@@ -23,6 +23,14 @@ def test_condition_policy_is_general_and_composed_after_query_policy():
     assert "weather" not in CONDITION_POLICY
 
 
+def test_condition_policy_waits_for_results_only_when_a_later_call_depends_on_them():
+    policy = CONDITION_POLICY.casefold()
+    assert "chỉ có sau kết quả call trước" in policy
+    assert "chờ kết quả đó rồi mới tạo call phụ thuộc" in policy
+    assert "các call độc lập vẫn có thể được tạo cùng lượt" in policy
+    assert "không bịa dữ kiện" in policy
+
+
 def test_condition_examples_are_manifested_and_user_text_stays_literal():
     import json
     from pathlib import Path
@@ -67,6 +75,21 @@ def test_time_policy_follows_intent_policy_and_uses_context_as_anchor():
     assert text.index(INTENT_POLICY) < text.index(TIME_POLICY)
     assert "thời gian trong context" in TIME_POLICY.casefold()
     assert "múi giờ" in TIME_POLICY
+
+
+def test_time_policy_preserves_request_dates_and_resolves_clock_and_anchor_roles():
+    assert "yêu cầu còn hiệu lực" in TIME_POLICY
+    assert "lời sửa hoặc căn cứ mới" in TIME_POLICY
+    assert "giờ, phút và buổi" in TIME_POLICY
+    assert "thời điểm sự kiện, thời gian di chuyển, giờ nhắc và hạn chót" in TIME_POLICY
+    assert "không chọn mốc khác chỉ vì nó xuất hiện gần hơn" in TIME_POLICY
+
+
+def test_time_policy_preserves_exact_time_offsets_and_deadlines():
+    assert "không tự chuyển sang sớm hơn" in TIME_POLICY
+    assert "chỉ trừ đúng khoảng thời gian được yêu cầu" in TIME_POLICY
+    assert "giữ X giờ là hạn chót" in TIME_POLICY
+    assert "người dùng đã giao quyền chọn giờ" in TIME_POLICY
 
 
 def test_context_and_confirmed_event_time_remain_available_without_rewriting_request():
@@ -117,6 +140,18 @@ def test_evidence_policy_follows_time_and_covers_grounding_optional_values_and_r
     assert text.index(TIME_POLICY) < text.index(EVIDENCE_POLICY)
     for phrase in ("ví dụ trong schema", "tham số optional", "đã gọi tool không đồng nghĩa đã thành công"):
         assert phrase in EVIDENCE_POLICY.casefold()
+
+
+def test_evidence_policy_preserves_entity_identity_facts_and_delegated_choice():
+    assert "đúng loại đối tượng" in EVIDENCE_POLICY
+    assert "thứ tự kết quả không phải tiêu chí chọn" in EVIDENCE_POLICY
+    assert "người dùng cho phép chọn tùy ý" in EVIDENCE_POLICY
+    assert "giữ nguyên các thông tin đã xác nhận" in EVIDENCE_POLICY
+    assert "không biến thông tin chưa rõ thành chi tiết cụ thể" in EVIDENCE_POLICY
+    assert "phân biệt số lượng, độ dài, đơn giá, hệ số và tổng" in EVIDENCE_POLICY.casefold()
+    assert "khi thiếu dữ kiện cần thiết" in EVIDENCE_POLICY.casefold()
+    assert "người dùng đã giao quyền chọn giá trị" in EVIDENCE_POLICY
+    assert "chỉ vì có hạn chót" in EVIDENCE_POLICY
 
 
 def test_evidence_cases_cover_tool_choice_grounding_and_literal_recipients():

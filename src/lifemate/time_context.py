@@ -4,6 +4,17 @@ from datetime import datetime, timedelta
 from typing import Any
 
 
+_WEEKDAYS_VI = (
+    "thứ hai",
+    "thứ ba",
+    "thứ tư",
+    "thứ năm",
+    "thứ sáu",
+    "thứ bảy",
+    "chủ nhật",
+)
+
+
 def build_time_context(context: dict[str, Any]) -> dict[str, Any]:
     """Build bounded date/weekday facts; return empty when the anchor is unusable."""
     raw = context.get("current_time")
@@ -18,10 +29,10 @@ def build_time_context(context: dict[str, Any]) -> dict[str, Any]:
 
     today = anchor.date()
     monday = today - timedelta(days=today.weekday())
-    calendar = [
-        {"date": (monday + timedelta(days=offset)).isoformat(), "iso_weekday": (monday + timedelta(days=offset)).isoweekday()}
-        for offset in range(14)
-    ]
+    calendar = []
+    for offset in range(14):
+        date = monday + timedelta(days=offset)
+        calendar.append({"date": date.isoformat(), "weekday_vi": _WEEKDAYS_VI[date.weekday()]})
     return {
         "anchor": raw,
         "today": today.isoformat(),
