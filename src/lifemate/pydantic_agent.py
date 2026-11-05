@@ -13,7 +13,6 @@ from dataclasses import dataclass, field, replace
 from datetime import date, datetime, time
 from typing import Any, Literal
 
-from .tool_semantics import tool_semantics_note
 from .agent_policy import agent_instructions
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr, create_model
@@ -246,9 +245,6 @@ def build_tool_definitions(deps: AgentDependencies) -> list[Any]:
 
         schema = _catalog_json_schema(argument_model, tool)
         description = str(tool.get("description", ""))
-        note = tool_semantics_note(official_name)
-        if note:
-            description = f"{description} {note}".strip()
         if official_name not in description:
             description = f"Tên công cụ chính thức: {official_name}. {description}".strip()
         if not schema.get("properties"):

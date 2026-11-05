@@ -7,7 +7,7 @@ from typing import Any
 
 from .asr import ASR, transcript
 from .data import allowed_tools
-from .pydantic_agent import AgentDependencies, build_agent, run_agent, tool_name_map, VIETNAMESE_REASONING
+from .pydantic_agent import AgentDependencies, build_agent, run_agent, tool_name_map
 from .time_context import build_time_context
 
 
@@ -75,14 +75,7 @@ def _build_system_prompt(sample: dict[str, Any]) -> str:
 
     context = dict(sample.get("context", {}))
     context.pop("installed_apps", None)
-    parts = [
-            "Bạn là trợ lý tiếng Việt hoạt động ngoại tuyến và thực hiện yêu cầu bằng cách gọi công cụ.",
-            "Chỉ sử dụng các công cụ đã đăng ký và không tự bịa mã định danh.",
-            "Nếu thao tác tiếp theo cần một mã định danh chưa biết, hãy gọi công cụ đọc dữ liệu để tra cứu trước.",
-            "Không gọi công cụ khi yêu cầu không cần thực hiện thao tác nào.",
-            VIETNAMESE_REASONING,
-            f"Bối cảnh: {json.dumps(context, ensure_ascii=False)}",
-        ]
+    parts = [f"Bối cảnh: {json.dumps(context, ensure_ascii=False)}"]
     time_facts = build_time_context(context)
     if time_facts:
         parts.append(f"Mốc lịch suy ra từ context: {json.dumps(time_facts, ensure_ascii=False)}")

@@ -21,7 +21,7 @@ def test_optional_value_notes_match_runtime_defaults():
     assert "mức normal" in tool_semantics_note("tasks.add")
 
 
-def test_argument_semantics_overlays_do_not_mutate_schemas_or_execution(monkeypatch):
+def test_catalog_descriptions_preserve_schemas_and_execution_without_notes(monkeypatch):
     captured = []
 
     class FakeTool:
@@ -54,9 +54,9 @@ def test_argument_semantics_overlays_do_not_mutate_schemas_or_execution(monkeypa
     definitions = build_tool_definitions(deps)
     assert len(definitions) == 3
     descriptions = {item[1]["name"]: item[1]["description"] for item in captured}
-    assert "không truyền ride_id" in descriptions["ride_hailing_get_ride"].casefold()
-    assert "toàn bộ hóa đơn" in descriptions["bill_payment_pay"].casefold()
-    assert "nếu bỏ end" in descriptions["calendar_update_event"].casefold()
+    for tool in catalog_tools:
+        wire_name = tool["name"].replace(".", "_")
+        assert descriptions[wire_name] == f'Tên công cụ chính thức: {tool["name"]}. {tool["description"]}'
     arguments = [({},), ({"bill_id": "bill_1", "source": "ewallet"},), ({"event_id": "evt_1", "start": "2026-11-06T10:00:00+07:00"},)]
     for (function, _), (kwargs,) in zip(captured, arguments):
         function(SimpleNamespace(deps=deps), **kwargs)
@@ -71,7 +71,7 @@ def test_argument_semantics_overlays_do_not_mutate_schemas_or_execution(monkeypa
     ]
 
 
-def test_description_overlay_preserves_catalog_and_arguments(monkeypatch):
+def test_catalog_description_preserves_catalog_and_arguments(monkeypatch):
     captured = []
 
     class FakeTool:
@@ -100,7 +100,7 @@ def test_description_overlay_preserves_catalog_and_arguments(monkeypatch):
     deps = AgentDependencies(env=env, tools_by_name={catalog_tool["name"]: catalog_tool}, max_steps=10)
     definitions = build_tool_definitions(deps)
     assert len(definitions) == 1
-    assert "không áp dụng limit" in captured[0][1]["description"]
+    assert captured[0][1]["description"] == "Tên công cụ chính thức: food_delivery.order_history. Lịch sử đơn hàng"
     assert captured[0][1]["json_schema"]["properties"] == {
         "limit": {"default": None, "title": "Limit", "type": "integer"}
     }

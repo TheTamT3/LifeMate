@@ -259,12 +259,16 @@ def main(argv: list[str] | None = None) -> None:
     dataset_name = args.dataset_name or f'lifemate-{args.root.resolve().name}-{args.split}'
     experiment_name = args.experiment_name or f'{project}-{uuid4().hex[:12]}'
     from lifemate.pydantic_agent import qwen_thinking_settings
+    from lifemate.agent_policy import PROMPT_VERSION, agent_instructions
+    from hashlib import sha256
     experiment, args.example_ids = prepare_experiment(
         client, samples, dataset_name, experiment_name,
         {'input_mode': 'reference_text' if args.use_reference_text else 'gipformer',
          'llm_model': args.llm_model_name, 'seed': args.seed, 'max_steps': args.max_steps,
          'model_settings': qwen_thinking_settings(args.seed), 'reasoning_language': 'vi',
-         'thinking_in_history': False, 'prompt_version': 'vi-qwen-thinking-v1'},
+         'thinking_in_history': False, 'prompt_version': PROMPT_VERSION,
+         'static_prompt_sha256': sha256(agent_instructions().encode('utf-8')).hexdigest(),
+         'tool_semantics_notes': False},
         references=args.references,
     )
     project = experiment.name
