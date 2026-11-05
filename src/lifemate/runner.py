@@ -55,10 +55,15 @@ def run_sample(
     text = transcript(_sample_with_audio_root(sample, root, split), asr)
     tools_by_name = {tool["name"]: tool for tool in tools}
     deps = AgentDependencies(env=env, tools_by_name=tools_by_name, max_steps=max_steps, seed=seed)
-    agent = build_agent(llm_model, deps)
+    agent = (build_agent(llm_model, deps, instructions=ORACLE_INSTRUCTIONS)
+             if oracle_inputs is not None else build_agent(llm_model, deps))
     prompt = _build_agent_prompt(sample, text, tools)
+    instructions = None
     if oracle_inputs is not None:
-        prompt = json.dumps({'request': text, 'source_context': oracle_inputs.source_context}, ensure_ascii=False)
+        context = dict(sample.get('context', {}))
+        context.pop('installed_apps', None)
+        instructions = json.dumps({'context': context,
+                                   'source_context': oracle_inputs.source_context}, ensure_ascii=False)
     history_records = _history_records(sample, history_names)
     message_history = _to_model_messages(history_records) if history_records else []
     run_agent(
@@ -66,7 +71,7 @@ def run_sample(
         deps,
         prompt,
         message_history=message_history,
-        instructions=_build_system_prompt(sample) + ('\n' + ORACLE_INSTRUCTIONS if oracle_inputs is not None else ''),
+        instructions=instructions if oracle_inputs is not None else _build_system_prompt(sample),
     )
 
     result = {

@@ -89,14 +89,18 @@ def test_runner_delivers_source_and_preserves_autonomous_zero_calls(tmp_path, mo
         def get_state_hash(self): return 'unchanged'
 
     monkeypatch.setattr(runner, '_tool_env', lambda *a: Env())
-    monkeypatch.setattr(runner, 'build_agent', lambda model, deps: captured.update(tools=deps.tools_by_name))
+    monkeypatch.setattr(runner, 'build_agent', lambda model, deps, **kw: captured.update(tools=deps.tools_by_name, agent_options=kw))
     monkeypatch.setattr(runner, 'run_agent', lambda agent, deps, prompt, **kw: captured.update(prompt=prompt, **kw))
     result = runner.run_sample(sample, 'train', tmp_path, catalog, None, oracle_inputs=prepared)
     assert set(captured['tools']) == set(prepared.tool_names)
-    assert 'initial' in captured['prompt'] and 'source_context' in captured['prompt']
+    assert captured['prompt'] == 'request'
+    assert 'initial' in captured['instructions'] and 'source_context' in captured['instructions']
     assert 'GOLD' not in str(captured)
     assert result['tool_calls'] == []
     assert result['oracle']['tool_names'] == list(prepared.tool_names)
+    from lifemate.oracle import ORACLE_INSTRUCTIONS
+    assert captured['agent_options'] == {'instructions': ORACLE_INSTRUCTIONS}
+    assert json.loads(captured['instructions'])['source_context'] == prepared.source_context
 
     captured.clear()
     sample['source_context'] = {'secret': 'UNTRUSTED_SOURCE'}
@@ -104,6 +108,7 @@ def test_runner_delivers_source_and_preserves_autonomous_zero_calls(tmp_path, mo
     assert captured['prompt'] == 'request'
     assert 'sys.ask_missing_info' in captured['tools']
     assert 'oracle' not in baseline
+    assert captured['agent_options'] == {}
 
 
 def test_missing_initial_file_is_not_replaced_with_gold_results(tmp_path):
@@ -130,6 +135,7 @@ def test_real_sdk_request_has_only_selected_tools_and_auto_choice(tmp_path, monk
     from lifemate.pydantic_agent import agent_event_loop
 
     sample, catalog = fixture_data(tmp_path)
+    sample['context']['current_time'] = '2026-11-05T09:00:00+07:00'
     sample['history'] = [{'role': 'assistant', 'tool_calls': [
         {'name': 'calendar.update', 'arguments': {'contact_id': 'c1'}}],
         'tool_results': [{'ok': True}]}]
@@ -178,6 +184,20 @@ def test_real_sdk_request_has_only_selected_tools_and_auto_choice(tmp_path, monk
     if selected:
         assert 'initial' in str(body['messages'])
     assert 'GOLD' not in str(body)
+    from lifemate.oracle import ORACLE_INSTRUCTIONS
+    system_messages = [m for m in body['messages'] if m['role'] == 'system']
+    assert len(system_messages) == 1
+    system_text = system_messages[0]['content']
+    assert system_text.startswith(ORACLE_INSTRUCTIONS)
+    payload = json.loads(system_text[len(ORACLE_INSTRUCTIONS):].strip())
+    user = next(m for m in body['messages'] if m['role'] == 'user')
+    assert user['content'] == 'request'
+    assert 'context' in payload
+    assert payload['context']['current_time'] == sample['context']['current_time']
+    assert 'installed_apps' not in payload['context']
+    assert payload['source_context'] == prepared.source_context
+    for request in requests:
+        assert next(m['content'] for m in request['messages'] if m['role'] == 'system') == system_text
     history_call = next(m for m in body['messages'] if m.get('tool_calls'))
     assert history_call['tool_calls'][0]['function']['name'] == 'calendar_update'
 

@@ -313,7 +313,7 @@ def _normalizing_model(model: Any, deps: AgentDependencies) -> Any:
     return NormalizingModel(model)
 
 
-def build_agent(model: Any, deps: AgentDependencies) -> Any:
+def build_agent(model: Any, deps: AgentDependencies, *, instructions: str | None = None) -> Any:
     try:
         from pydantic_ai import Agent
     except ImportError as exc:  # pragma: no cover - runtime dependency guard
@@ -326,7 +326,7 @@ def build_agent(model: Any, deps: AgentDependencies) -> Any:
         history_processors=[without_thinking],
         # Instructions are merged with per-sample instructions into one leading
         # system message, including when a conversation history is supplied.
-        instructions=agent_instructions(),
+        instructions=agent_instructions() if instructions is None else instructions,
     )
 
 

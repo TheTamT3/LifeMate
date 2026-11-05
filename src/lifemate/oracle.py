@@ -12,7 +12,7 @@ from typing import Any
 
 from .data import allowed_tools
 
-ORACLE_VERSION = 'gold-tools-initial-app-sources-v1'
+ORACLE_VERSION = 'gold-tools-initial-app-sources-v2'
 ORACLE_INSTRUCTIONS = (
     'Danh sách công cụ đã được chọn phù hợp với yêu cầu; dữ liệu nguồn ban đầu '
     'của các ứng dụng liên quan được cung cấp trong source_context. '

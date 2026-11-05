@@ -10,7 +10,7 @@ This train-only experiment measures performance with the correct tool set and re
 - `source_context` contains **initial state sections of relevant apps**, selected from each tool's catalog `app` and recursively discovered schema `x-ref` app prefixes. The state comes from `train/train_environment/<id>/state.json` before any tool execution. Metadata and unrelated apps are excluded. Stateless tools may have no state section.
 - Selection is at **app granularity**, not exact target-row granularity. All rows of a selected app remain available, so entity selection and ambiguity resolution are still tested. This does not establish an upper bound with perfect target-record selection.
 - Gold arguments, gold tool results and final state are never used to construct the agent input. Historical conversation remains unchanged, including wire names for tools excluded from the current tool set.
-- The current user message is JSON with `request` and `source_context`. Baseline system policies, tool semantics, schemas, sampling, thinking and request limit stay unchanged; one Vietnamese instruction explains the supplied sources and autonomous tool choice.
+- The current user message contains only the user's request text. The system prompt combines `ORACLE_INSTRUCTIONS` from `src/lifemate/oracle.py` with JSON data containing `context` (without installed_apps) and `source_context`. Both remain fixed across requests of the same sample. No baseline policies or derived calendar are appended in oracle mode. Tool semantics, schemas, sampling, thinking and request limit stay unchanged.
 - The baseline path is unchanged when the flag is absent. All selected oracle inputs are prepared before model inference or experiment creation; malformed labels and unknown/unavailable tools fail preflight.
 
 ## Run the same 300 samples
@@ -42,6 +42,8 @@ For local preparation, the original data root is `train+public_test/train+public
 Keep the existing evaluator and labels. Report `state_hash_match` and `tool_call_accuracy` separately: supplied initial source data can let the agent skip a gold read call, producing the correct state but a lower full-call-set match. Do not silently remove reads or rewrite labels. Runtime failures and latency should also be reported.
 
 Project metadata records `oracle_tools_source`, `oracle_version`, tool/source selection and automatic tool choice. Each successful sample output records selected tool names and source app names. Do not interpret this label-assisted result as normal benchmark performance.
+
+Version `gold-tools-initial-app-sources-v2` uses `prompt_version=oracle-simple-v2`. It changes both source/tool availability and the system prompt relative to baseline, so accuracy differences do not isolate source/tool selection alone. The baseline without the oracle flag retains its existing instructions. Batch support from the abandoned uncommitted changes is not included; execution remains sequential.
 
 Offline preparation succeeded for all 300 IDs: 21 samples with no gold tools; tool-set size distribution `{0: 21, 1: 76, 2: 89, 3: 63, 4: 38, 5: 13}`. This is preparation validation, not measured LLM accuracy. No real model inference has been run for this experiment yet.
 
