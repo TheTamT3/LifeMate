@@ -188,6 +188,8 @@ def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog
         oracle_kwargs = {'oracle_inputs': oracle} if oracle is not None else {}
         if getattr(args, 'oracle_context_full_tools', False):
             oracle_kwargs['oracle_context_full_tools'] = True
+        if getattr(args, 'math_framed_full_tools', False):
+            oracle_kwargs['math_framed_full_tools'] = True
         result = runner.run_sample(sample_for_run, split=args.split, root=args.root, catalog=catalog, llm_model=traced_llm, asr=asr, max_steps=args.max_steps, seed=args.seed, **oracle_kwargs)
     except Exception as exc:
         error = {"id": str(sample["id"]), "run_id": root_run_id, "error": f"{type(exc).__name__}: {exc}"}
@@ -291,8 +293,10 @@ def main(argv: list[str] | None = None) -> None:
                                  help='train-only: gold tool names only; app data comes from tool calls')
     experiment_mode.add_argument('--oracle-context-full-tools', action='store_true',
                                  help='train-only: oracle prompt/context with all installed-app tools')
+    experiment_mode.add_argument('--math-framed-full-tools', action='store_true',
+                                 help='train-only: math-framed prompt with all installed-app tools')
     args = parser.parse_args(argv)
-    if (args.oracle_tools_source or args.oracle_context_full_tools) and args.split != 'train':
+    if (args.oracle_tools_source or args.oracle_context_full_tools or args.math_framed_full_tools) and args.split != 'train':
         parser.error('oracle-context experiments require --split train')
     if args.concurrency < 1:
         parser.error('--concurrency must be positive')
@@ -314,6 +318,7 @@ def main(argv: list[str] | None = None) -> None:
     samples = select_samples(read_jsonl(data_path), sample_id=args.sample_id, limit=args.limit, sample_ids_file=args.sample_ids_file)
     catalog = load_catalog(catalog_path)
     from lifemate.oracle import prepare_oracle_inputs, ORACLE_VERSION
+    from lifemate.math_prompt import MATH_PROMPT_VERSION
     args.oracle_inputs = ({str(sample['id']): prepare_oracle_inputs(sample, catalog, args.root, args.split)
                           for sample in samples} if args.oracle_tools_source else {})
     from lifemate.agent_evaluation import TrainEvaluator
@@ -334,9 +339,10 @@ def main(argv: list[str] | None = None) -> None:
          'llm_model': args.llm_model_name, 'seed': args.seed, 'max_steps': args.max_steps,
          'model_settings': qwen_thinking_settings(args.seed), 'reasoning_language': 'vi',
          'thinking_in_history': False,
-         'prompt_version': 'oracle-tools-only-v3' if (args.oracle_tools_source or args.oracle_context_full_tools) else 'vi-qwen-thinking-v1',
+         'prompt_version': MATH_PROMPT_VERSION if args.math_framed_full_tools else ('oracle-tools-only-v3' if (args.oracle_tools_source or args.oracle_context_full_tools) else 'vi-qwen-thinking-v1'),
          'oracle_tools_source': args.oracle_tools_source,
          'oracle_context_full_tools': args.oracle_context_full_tools,
+         'math_framed_full_tools': args.math_framed_full_tools,
          'oracle_version': ORACLE_VERSION if args.oracle_tools_source else None,
          'tool_selection': 'gold_unique_names' if args.oracle_tools_source else 'installed_apps',
          'concurrency': args.concurrency,

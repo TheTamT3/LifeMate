@@ -154,6 +154,59 @@ def test_full_tools_mode_preserves_oracle_prompt_and_context(tmp_path, monkeypat
     assert 'oracle' not in result
 
 
+def test_math_framed_mode_changes_only_agent_instructions(tmp_path, monkeypatch):
+    from lifemate import runner
+    from lifemate.math_prompt import MATH_FRAMED_INSTRUCTIONS, MATH_PROMPT_VERSION
+
+    sample, catalog = fixture_data(tmp_path)
+    sample.pop('label')
+    sample['history'] = [{'role': 'user', 'content': 'Earlier request'}]
+    captured = []
+
+    class Env:
+        def get_tool_calls(self): return []
+        def get_state_hash(self): return 'unchanged'
+
+    monkeypatch.setattr(runner, '_tool_env', lambda *a: Env())
+    monkeypatch.setattr(runner, '_to_model_messages', lambda records: records)
+
+    def capture_agent(model, deps, **kwargs):
+        captured.append({'tools': copy.deepcopy(deps.tools_by_name), 'agent_options': kwargs,
+                         'max_steps': deps.max_steps, 'seed': deps.seed})
+        return None
+
+    def capture_run(agent, deps, prompt, **kwargs):
+        captured[-1].update({'prompt': prompt, 'run': kwargs})
+
+    monkeypatch.setattr(runner, 'build_agent', capture_agent)
+    monkeypatch.setattr(runner, 'run_agent', capture_run)
+    runner.run_sample(sample, 'train', tmp_path, catalog, None,
+                      oracle_context_full_tools=True, max_steps=10, seed=0)
+    result = runner.run_sample(sample, 'train', tmp_path, catalog, None,
+                               math_framed_full_tools=True, max_steps=10, seed=0)
+    control, treatment = captured
+    assert control['tools'] == treatment['tools']
+    assert control['max_steps'] == treatment['max_steps'] == 10
+    assert control['seed'] == treatment['seed'] == 0
+    assert control['prompt'] == treatment['prompt']
+    assert control['run'] == treatment['run']
+    assert control['agent_options'] != treatment['agent_options']
+    assert treatment['agent_options'] == {'instructions': MATH_FRAMED_INSTRUCTIONS}
+    assert result['math_framed_full_tools']['prompt_version'] == MATH_PROMPT_VERSION
+
+
+def test_math_framed_mode_rejects_oracle_and_non_train(tmp_path):
+    from lifemate import runner
+    sample, catalog = fixture_data(tmp_path)
+    prepared = prepare_oracle_inputs(sample, catalog, tmp_path, 'train')
+    with pytest.raises(ValueError, match='mutually exclusive'):
+        runner.run_sample(sample, 'train', tmp_path, catalog, None,
+                          oracle_inputs=prepared, math_framed_full_tools=True)
+    with pytest.raises(ValueError, match='train'):
+        runner.run_sample(sample, 'public_test', tmp_path, catalog, None,
+                          math_framed_full_tools=True)
+
+
 def test_preparation_needs_no_state_file(tmp_path):
     sample, catalog = fixture_data(tmp_path)
     assert prepare_oracle_inputs(sample, catalog, tmp_path / 'absent', 'train').tool_names == ('calendar.list', 'calendar.update')
@@ -271,6 +324,9 @@ def test_cli_rejects_non_train_before_loading_credentials(monkeypatch):
     ['--oracle-context-full-tools', '--split', 'public_test'],
     ['--oracle-context-full-tools', '--concurrency', '0'],
     ['--oracle-context-full-tools', '--concurrency', '32'],
+    ['--math-framed-full-tools', '--oracle-context-full-tools'],
+    ['--math-framed-full-tools', '--oracle-tools-source'],
+    ['--math-framed-full-tools', '--split', 'public_test'],
 ])
 def test_cli_rejects_invalid_experiment_or_concurrency_before_credentials(monkeypatch, extra):
     module = smoke_module()
@@ -324,6 +380,30 @@ def test_traced_runner_forwards_full_tools_mode_without_label(tmp_path):
                                     llm=None, asr=None, client=client, project='test')
     assert 'error' not in result
     assert captured['oracle_context_full_tools'] is True
+    assert 'oracle_inputs' not in captured
+    assert 'label' not in captured['sample']
+
+
+def test_traced_runner_forwards_math_mode_without_label(tmp_path):
+    from types import SimpleNamespace
+    module = smoke_module()
+    sample, catalog = fixture_data(tmp_path)
+    captured = {}
+
+    def run_sample(sample_for_run, **kwargs):
+        captured.update(sample=sample_for_run, **kwargs)
+        return {'id': sample_for_run['id'], 'tool_calls': [], 'state_hash': 'initial'}
+
+    runner = SimpleNamespace(_tool_env=lambda *a: None, transcript=lambda *a: 'request',
+                             run_agent=lambda *a: None, run_sample=run_sample)
+    client = SimpleNamespace(create_run=lambda **kw: None, update_run=lambda *a, **kw: None)
+    args = SimpleNamespace(use_reference_text=True, asr_backend='gipformer', split='train',
+        llm_model_name='test', example_ids={'train_1': None}, root=tmp_path,
+        max_steps=10, seed=0, oracle_inputs={}, math_framed_full_tools=True)
+    result = module._run_one_sample(sample, args=args, catalog=catalog, runner=runner,
+                                    llm=None, asr=None, client=client, project='test')
+    assert 'error' not in result
+    assert captured['math_framed_full_tools'] is True
     assert 'oracle_inputs' not in captured
     assert 'label' not in captured['sample']
 

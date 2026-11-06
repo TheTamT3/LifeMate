@@ -10,6 +10,7 @@ from .data import allowed_tools
 from .pydantic_agent import AgentDependencies, build_agent, run_agent, tool_name_map, VIETNAMESE_REASONING
 from .time_context import build_time_context
 from .oracle import OracleInputs, ORACLE_INSTRUCTIONS, ORACLE_VERSION
+from .math_prompt import MATH_FRAMED_INSTRUCTIONS, MATH_PROMPT_VERSION
 
 
 def _tool_env(split: str, sample_id: str, root: Path) -> Any:
@@ -44,10 +45,11 @@ def run_sample(
     seed: int = 0,
     oracle_inputs: OracleInputs | None = None,
     oracle_context_full_tools: bool = False,
+    math_framed_full_tools: bool = False,
 ) -> dict[str, Any]:
-    if oracle_inputs is not None and oracle_context_full_tools:
+    if sum((oracle_inputs is not None, oracle_context_full_tools, math_framed_full_tools)) > 1:
         raise ValueError('oracle and full-tools experiment modes are mutually exclusive')
-    experimental_context = oracle_inputs is not None or oracle_context_full_tools
+    experimental_context = oracle_inputs is not None or oracle_context_full_tools or math_framed_full_tools
     if experimental_context and split != 'train':
         raise ValueError('oracle-context experiments require the train split')
     env = _tool_env(split, sample["id"], root)
@@ -59,7 +61,8 @@ def run_sample(
     text = transcript(_sample_with_audio_root(sample, root, split), asr)
     tools_by_name = {tool["name"]: tool for tool in tools}
     deps = AgentDependencies(env=env, tools_by_name=tools_by_name, max_steps=max_steps, seed=seed)
-    agent = (build_agent(llm_model, deps, instructions=ORACLE_INSTRUCTIONS)
+    experiment_instructions = MATH_FRAMED_INSTRUCTIONS if math_framed_full_tools else ORACLE_INSTRUCTIONS
+    agent = (build_agent(llm_model, deps, instructions=experiment_instructions)
              if experimental_context else build_agent(llm_model, deps))
     prompt = _build_agent_prompt(sample, text, tools)
     instructions = None
@@ -88,6 +91,9 @@ def run_sample(
         result['oracle'] = {'version': ORACLE_VERSION, 'tool_names': list(oracle_inputs.tool_names)}
     elif oracle_context_full_tools:
         result['full_tools_oracle_context'] = {'tool_names': list(tools_by_name)}
+    elif math_framed_full_tools:
+        result['math_framed_full_tools'] = {
+            'prompt_version': MATH_PROMPT_VERSION, 'tool_names': list(tools_by_name)}
     return result
 
 
