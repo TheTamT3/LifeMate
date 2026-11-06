@@ -43,9 +43,13 @@ def run_sample(
     max_steps: int = 10,
     seed: int = 0,
     oracle_inputs: OracleInputs | None = None,
+    oracle_context_full_tools: bool = False,
 ) -> dict[str, Any]:
-    if oracle_inputs is not None and split != 'train':
-        raise ValueError('oracle-tools-source requires train labels')
+    if oracle_inputs is not None and oracle_context_full_tools:
+        raise ValueError('oracle and full-tools experiment modes are mutually exclusive')
+    experimental_context = oracle_inputs is not None or oracle_context_full_tools
+    if experimental_context and split != 'train':
+        raise ValueError('oracle-context experiments require the train split')
     env = _tool_env(split, sample["id"], root)
     tools = allowed_tools(sample, catalog)
     history_names = tool_name_map(tools)
@@ -56,10 +60,10 @@ def run_sample(
     tools_by_name = {tool["name"]: tool for tool in tools}
     deps = AgentDependencies(env=env, tools_by_name=tools_by_name, max_steps=max_steps, seed=seed)
     agent = (build_agent(llm_model, deps, instructions=ORACLE_INSTRUCTIONS)
-             if oracle_inputs is not None else build_agent(llm_model, deps))
+             if experimental_context else build_agent(llm_model, deps))
     prompt = _build_agent_prompt(sample, text, tools)
     instructions = None
-    if oracle_inputs is not None:
+    if experimental_context:
         context = dict(sample.get('context', {}))
         context.pop('installed_apps', None)
         instructions = json.dumps({'context': context}, ensure_ascii=False)
@@ -70,7 +74,7 @@ def run_sample(
         deps,
         prompt,
         message_history=message_history,
-        instructions=instructions if oracle_inputs is not None else _build_system_prompt(sample),
+        instructions=instructions if experimental_context else _build_system_prompt(sample),
     )
 
     result = {
@@ -82,6 +86,8 @@ def run_sample(
         result["argument_normalizations"] = deps.argument_normalizations
     if oracle_inputs is not None:
         result['oracle'] = {'version': ORACLE_VERSION, 'tool_names': list(oracle_inputs.tool_names)}
+    elif oracle_context_full_tools:
+        result['full_tools_oracle_context'] = {'tool_names': list(tools_by_name)}
     return result
 
 

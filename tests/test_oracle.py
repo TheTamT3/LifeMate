@@ -110,6 +110,50 @@ def test_runner_excludes_state_and_preserves_autonomous_zero_calls(tmp_path, mon
     assert captured['agent_options'] == {}
 
 
+def test_full_tools_mode_preserves_oracle_prompt_and_context(tmp_path, monkeypatch):
+    from lifemate import runner
+    from lifemate.oracle import ORACLE_INSTRUCTIONS
+
+    sample, catalog = fixture_data(tmp_path)
+    sample['context']['current_time'] = '2026-11-05T09:00:00+07:00'
+    sample['history'] = [{'role': 'user', 'content': 'Earlier request'}]
+    prepared = prepare_oracle_inputs(sample, catalog, tmp_path, 'train')
+    captured = []
+
+    class Env:
+        def get_tool_calls(self): return []
+        def get_state_hash(self): return 'unchanged'
+
+    monkeypatch.setattr(runner, '_tool_env', lambda *a: Env())
+    monkeypatch.setattr(runner, '_to_model_messages', lambda records: records)
+
+    def capture_agent(model, deps, **kwargs):
+        captured.append({'tools': tuple(deps.tools_by_name), 'options': kwargs})
+        return None
+
+    def capture_run(agent, deps, prompt, **kwargs):
+        captured[-1].update({'prompt': prompt, 'run': kwargs})
+
+    monkeypatch.setattr(runner, 'build_agent', capture_agent)
+    monkeypatch.setattr(runner, 'run_agent', capture_run)
+    runner.run_sample(sample, 'train', tmp_path, catalog, None, oracle_inputs=prepared)
+    full_sample = copy.deepcopy(sample)
+    full_sample.pop('label')
+    result = runner.run_sample(full_sample, 'train', tmp_path, catalog, None,
+                               oracle_context_full_tools=True)
+
+    oracle_call, full_call = captured
+    assert set(oracle_call['tools']) == {'calendar.list', 'calendar.update'}
+    assert set(full_call['tools']) == {
+        'calendar.list', 'calendar.update', 'sys.ask_missing_info'}
+    assert oracle_call['options'] == full_call['options'] == {'instructions': ORACLE_INSTRUCTIONS}
+    assert oracle_call['prompt'] == full_call['prompt'] == 'request'
+    assert oracle_call['run'] == full_call['run']
+    assert set(json.loads(full_call['run']['instructions'])) == {'context'}
+    assert 'installed_apps' not in full_call['run']['instructions']
+    assert 'oracle' not in result
+
+
 def test_preparation_needs_no_state_file(tmp_path):
     sample, catalog = fixture_data(tmp_path)
     assert prepare_oracle_inputs(sample, catalog, tmp_path / 'absent', 'train').tool_names == ('calendar.list', 'calendar.update')
@@ -222,6 +266,20 @@ def test_cli_rejects_non_train_before_loading_credentials(monkeypatch):
     assert error.value.code == 2
 
 
+@pytest.mark.parametrize('extra', [
+    ['--oracle-tools-source', '--oracle-context-full-tools'],
+    ['--oracle-context-full-tools', '--split', 'public_test'],
+    ['--oracle-context-full-tools', '--concurrency', '0'],
+    ['--oracle-context-full-tools', '--concurrency', '32'],
+])
+def test_cli_rejects_invalid_experiment_or_concurrency_before_credentials(monkeypatch, extra):
+    module = smoke_module()
+    monkeypatch.setattr(module, 'load_dotenv', lambda *a, **kw: pytest.fail('credentials loaded'))
+    with pytest.raises(SystemExit) as error:
+        module.main(['--root', 'unused', '--sample-id', 'train_1', '--model', 'unused', *extra])
+    assert error.value.code == 2
+
+
 def test_traced_runner_forwards_prepared_input_and_strips_label(tmp_path):
     from types import SimpleNamespace
     module = smoke_module()
@@ -244,6 +302,58 @@ def test_traced_runner_forwards_prepared_input_and_strips_label(tmp_path):
     assert 'error' not in result
     assert captured['oracle_inputs'] is prepared
     assert 'label' not in captured['sample']
+
+
+def test_traced_runner_forwards_full_tools_mode_without_label(tmp_path):
+    from types import SimpleNamespace
+    module = smoke_module()
+    sample, catalog = fixture_data(tmp_path)
+    captured = {}
+
+    def run_sample(sample_for_run, **kwargs):
+        captured.update(sample=sample_for_run, **kwargs)
+        return {'id': sample_for_run['id'], 'tool_calls': [], 'state_hash': 'initial'}
+
+    runner = SimpleNamespace(_tool_env=lambda *a: None, transcript=lambda *a: 'request',
+                             run_agent=lambda *a: None, run_sample=run_sample)
+    client = SimpleNamespace(create_run=lambda **kw: None, update_run=lambda *a, **kw: None)
+    args = SimpleNamespace(use_reference_text=True, asr_backend='gipformer', split='train',
+        llm_model_name='test', example_ids={'train_1': None}, root=tmp_path,
+        max_steps=10, seed=0, oracle_inputs={}, oracle_context_full_tools=True)
+    result = module._run_one_sample(sample, args=args, catalog=catalog, runner=runner,
+                                    llm=None, asr=None, client=client, project='test')
+    assert 'error' not in result
+    assert captured['oracle_context_full_tools'] is True
+    assert 'oracle_inputs' not in captured
+    assert 'label' not in captured['sample']
+
+
+def test_parallel_dispatch_uses_32_workers_and_keeps_sample_order(monkeypatch):
+    from types import SimpleNamespace
+    module = smoke_module()
+    samples = [{'id': f'train_{i}'} for i in range(3)]
+    observed = {}
+
+    class Pool:
+        def __init__(self, max_workers, mp_context):
+            observed['max_workers'] = max_workers
+            observed['mp_context'] = mp_context
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def map(self, fn, tasks):
+            observed['tasks'] = list(tasks)
+            return ({'id': task[0]['id']} for task in reversed(observed['tasks']))
+
+    monkeypatch.setattr(module, 'ProcessPoolExecutor', Pool, raising=False)
+    args = SimpleNamespace(concurrency=32, use_reference_text=True, split='train',
+        root='unused', oracle_inputs={}, example_ids={sample['id']: None for sample in samples},
+        references={sample['id']: {} for sample in samples})
+    rows = module._execute_samples(samples, args=args, catalog={}, runner=None,
+                                   llm=None, asr=None, client=None, project='test')
+    assert observed['max_workers'] == 32
+    assert len(observed['tasks']) == 3
+    assert {task[0]['id'] for task in observed['tasks']} == {sample['id'] for sample in samples}
+    assert [row['id'] for row in rows] == [sample['id'] for sample in samples]
 
 
 def test_saved_300_ids_are_unique():

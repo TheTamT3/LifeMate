@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import multiprocessing
 import os
 import sys
+from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -184,6 +186,8 @@ def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog
         traced_llm = tracing_model(llm, tracer) if llm is not None else None
         oracle = getattr(args, 'oracle_inputs', {}).get(str(sample['id']))
         oracle_kwargs = {'oracle_inputs': oracle} if oracle is not None else {}
+        if getattr(args, 'oracle_context_full_tools', False):
+            oracle_kwargs['oracle_context_full_tools'] = True
         result = runner.run_sample(sample_for_run, split=args.split, root=args.root, catalog=catalog, llm_model=traced_llm, asr=asr, max_steps=args.max_steps, seed=args.seed, **oracle_kwargs)
     except Exception as exc:
         error = {"id": str(sample["id"]), "run_id": root_run_id, "error": f"{type(exc).__name__}: {exc}"}
@@ -211,6 +215,53 @@ def _run_one_sample(sample: dict[str, Any], *, args: argparse.Namespace, catalog
     return {"project": project, "run_id": root_run_id, **result}
 
 
+def _run_worker(task):
+    sample, config, project, example_id, reference, oracle_input = task
+    sys.path.insert(0, str(ROOT / 'src'))
+    import lifemate.runner as runner
+    from lifemate.agent_evaluation import TrainEvaluator
+    from lifemate.data import load_catalog, split_paths
+    from lifemate.pydantic_agent import agent_event_loop
+    from lifemate.vllm import VLLMConfig, create_vllm_model
+
+    args = argparse.Namespace(**config)
+    sample_id = str(sample['id'])
+    args.example_ids = {sample_id: example_id}
+    args.references = {sample_id: reference} if reference is not None else {}
+    args.oracle_inputs = {sample_id: oracle_input} if oracle_input is not None else {}
+    args.evaluator = TrainEvaluator(args.root) if args.split == 'train' else None
+    _, catalog_path = split_paths(args.root, args.split)
+    catalog = load_catalog(catalog_path)
+    client = create_trace_client(os.environ['LANGSMITH_API_KEY'])
+    llm = create_vllm_model(VLLMConfig(args.llm_base_url, args.llm_model_name, args.max_steps))
+    try:
+        with agent_event_loop() as loop:
+            try:
+                return _run_one_sample(sample, args=args, catalog=catalog, runner=runner,
+                                       llm=llm, asr=None, client=client, project=project)
+            finally:
+                loop.run(llm.client.close())
+    finally:
+        client.flush()
+
+
+def _execute_samples(samples, *, args, catalog, runner, llm, asr, client, project):
+    if args.concurrency == 1:
+        return [_run_one_sample(sample, args=args, catalog=catalog, runner=runner,
+                                llm=llm, asr=asr, client=client, project=project)
+                for sample in samples]
+    config = {key: value for key, value in vars(args).items()
+              if key not in {'example_ids', 'references', 'oracle_inputs', 'evaluator'}}
+    tasks = [(sample, config, project, args.example_ids[str(sample['id'])],
+              args.references.get(str(sample['id'])),
+              args.oracle_inputs.get(str(sample['id']))) for sample in samples]
+    with ProcessPoolExecutor(max_workers=args.concurrency,
+                             mp_context=multiprocessing.get_context('spawn')) as pool:
+        completed = list(pool.map(_run_worker, tasks))
+    by_id = {str(row['id']): row for row in completed}
+    return [by_id[str(sample['id'])] for sample in samples]
+
+
 def main(argv: list[str] | None = None) -> None:
     sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser()
@@ -219,7 +270,7 @@ def main(argv: list[str] | None = None) -> None:
     selector = parser.add_mutually_exclusive_group(required=True)
     selector.add_argument("--sample-id")
     selector.add_argument("--sample-ids-file", type=Path, help="file containing sample IDs separated by whitespace")
-    selector.add_argument("--limit", type=int, help="number of sequential samples to trace")
+    selector.add_argument("--limit", type=int, help="number of samples to trace")
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--asr-model", type=Path)
     parser.add_argument('--dataset-name', help='LangSmith dataset name; defaults to root name and split')
@@ -231,13 +282,22 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--llm-model-name", default="qwen3-4b")
     parser.add_argument("--max-steps", type=int, default=10)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--concurrency", type=int, default=1,
+                        help="number of concurrent sample workers; use --use-reference-text above 1")
     parser.add_argument("--project", default=None)
     parser.add_argument("--use-reference-text", action="store_true", help="use train audio_text instead of running ASR")
-    parser.add_argument('--oracle-tools-source', action='store_true',
-                        help='train-only: gold tool names only; app data comes from tool calls, never injected state')
+    experiment_mode = parser.add_mutually_exclusive_group()
+    experiment_mode.add_argument('--oracle-tools-source', action='store_true',
+                                 help='train-only: gold tool names only; app data comes from tool calls')
+    experiment_mode.add_argument('--oracle-context-full-tools', action='store_true',
+                                 help='train-only: oracle prompt/context with all installed-app tools')
     args = parser.parse_args(argv)
-    if args.oracle_tools_source and args.split != 'train':
-        parser.error('--oracle-tools-source requires --split train')
+    if (args.oracle_tools_source or args.oracle_context_full_tools) and args.split != 'train':
+        parser.error('oracle-context experiments require --split train')
+    if args.concurrency < 1:
+        parser.error('--concurrency must be positive')
+    if args.concurrency > 1 and not args.use_reference_text:
+        parser.error('--concurrency above 1 requires --use-reference-text')
 
     load_dotenv(ROOT / ".env", override=False)
     if args.project:
@@ -274,10 +334,12 @@ def main(argv: list[str] | None = None) -> None:
          'llm_model': args.llm_model_name, 'seed': args.seed, 'max_steps': args.max_steps,
          'model_settings': qwen_thinking_settings(args.seed), 'reasoning_language': 'vi',
          'thinking_in_history': False,
-         'prompt_version': 'oracle-tools-only-v3' if args.oracle_tools_source else 'vi-qwen-thinking-v1',
+         'prompt_version': 'oracle-tools-only-v3' if (args.oracle_tools_source or args.oracle_context_full_tools) else 'vi-qwen-thinking-v1',
          'oracle_tools_source': args.oracle_tools_source,
+         'oracle_context_full_tools': args.oracle_context_full_tools,
          'oracle_version': ORACLE_VERSION if args.oracle_tools_source else None,
          'tool_selection': 'gold_unique_names' if args.oracle_tools_source else 'installed_apps',
+         'concurrency': args.concurrency,
          'source_selection': 'tool_results',
          'tool_choice': 'auto'},
         references=args.references,
@@ -289,7 +351,8 @@ def main(argv: list[str] | None = None) -> None:
     try:
         with agent_event_loop() as batch_loop:
             try:
-                rows = [_run_one_sample(sample, args=args, catalog=catalog, runner=runner, llm=llm, asr=asr, client=client, project=project) for sample in samples]
+                rows = _execute_samples(samples, args=args, catalog=catalog, runner=runner,
+                                        llm=llm, asr=asr, client=client, project=project)
             finally:
                 # Close the provider's HTTP pool while its owning loop is alive.
                 batch_loop.run(llm.client.close())
